@@ -1225,6 +1225,8 @@ async function atualiza() {
   }
 }
 function mostraPortao(msg) { $("portao").style.display = "grid"; $("portao-msg").textContent = msg || ""; setTimeout(() => $("portao-senha").focus(), 50); }
+// a tela de senha fica depois do script: tudo que mexe nela só roda quando a página terminou de carregar
+document.addEventListener("DOMContentLoaded", () => {
 $("portao-form").addEventListener("submit", async ev => {
   ev.preventDefault();
   const s = $("portao-senha").value.trim(); if (!s) return;
@@ -1244,6 +1246,7 @@ $("ev-sel").addEventListener("change", desenha);
 ligaMesa(MESA);
 atualiza();
 setInterval(atualiza, 90000);     // GitHub: 60 consultas/hora sem login por endereço → a cada 90 s
+});
 </script>
 <div id="portao" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,13,12,.96);place-items:center;padding:20px">
   <form id="portao-form" style="width:min(380px,100%);background:var(--sup);border:1px solid var(--linha);border-radius:18px;padding:26px 24px;text-align:center">
