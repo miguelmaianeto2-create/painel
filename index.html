@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XPRIME · Painel das mesas</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* XPRIME Trading · identidade: grafite #0d1110, texto #EEF1EE, âmbar #FFB35C, Sora + IBM Plex Mono */
+:root{
+  --bg:#0a0d0c;--sup:#111614;--sup2:#161d1a;--sup3:#1c2421;--linha:#232d29;--linha2:#2f3a35;
+  --txt:#EEF1EE;--sub:#9aa49f;--sub2:#6f7a75;--ambar:#FFB35C;--ambar-f:rgba(255,179,92,.12);
+  --pos:#3fd17f;--pos-f:rgba(63,209,127,.12);--pos-t:#7fe8ad;--neg:#ff5c7a;--neg-f:rgba(255,92,122,.12);--neg-t:#ff9db0;
+  --azul:#6cb6ff;--azul-f:rgba(108,182,255,.12);--neu:#8a95a0;
+  /* nomes antigos usados pelas funções herdadas */
+  --card:var(--sup);--card2:var(--sup2);--conf:var(--ambar);--conf-f:var(--ambar-f);--conf-t:#ffd09a;--ctx:#5d6b66;--ctx-f:#1d2522;--ouro:var(--ambar);
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;--sans:Sora,"Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 var(--sans)}
+body{background:radial-gradient(1200px 500px at 85% -10%,rgba(255,179,92,.06),transparent 60%),var(--bg)}
+main{max-width:1320px;margin:0 auto;padding:0 18px 48px}
+.num{font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.sub{color:var(--sub);font-size:12px}
+.c{color:var(--pos-t)}.v{color:var(--neg-t)}.a{color:var(--ambar)}.n{color:var(--sub)}
+h2{margin:0 0 10px;font-size:11.5px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:1.4px}
+h2 .sub{text-transform:none;letter-spacing:0;font-weight:400}
+.card{background:linear-gradient(180deg,var(--sup),#0f1412);border:1px solid var(--linha);border-radius:16px;padding:16px 18px;min-width:0}
+.grade{display:grid;gap:14px;margin-top:14px}
+.g2{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.g2i{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:980px){.g2,.g2i,.g3{grid-template-columns:minmax(0,1fr)}}
+.diz{color:var(--sub2);font-size:11.5px;margin:10px 0 0;border-top:1px dashed var(--linha);padding-top:8px}
+.diz b{color:var(--sub);font-weight:600}
+.erro{display:none;background:rgba(255,92,122,.1);border:1px solid rgba(255,92,122,.4);color:var(--neg-t);border-radius:12px;padding:10px 14px;margin:12px 0 0;font-size:12.5px}
+/* ---------- cabeçalho ---------- */
+header.topo{position:sticky;top:0;z-index:20;background:rgba(10,13,12,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--linha);margin:0 -18px;padding:10px 18px}
+.topo-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:14px 22px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo svg{height:34px;width:auto;display:block}
+.titulo{display:flex;flex-direction:column;line-height:1.15}
+.titulo b{font-size:15px;letter-spacing:.4px}.titulo span{font-size:11px;color:var(--sub);font-family:var(--mono);letter-spacing:.5px}
+.saude{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--sup2);border:1px solid var(--linha);font-size:11.5px;color:var(--sub);white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--neu);display:inline-block}
+.pill.ok i{background:var(--pos);box-shadow:0 0 0 3px rgba(63,209,127,.15)}.pill.al i{background:var(--ambar)}.pill.er i{background:var(--neg);box-shadow:0 0 0 3px rgba(255,92,122,.15)}
+.pill b{color:var(--txt);font-weight:600;font-family:var(--mono)}
+.relogio{font-family:var(--mono);font-size:12px;color:var(--sub);text-align:right;line-height:1.3}
+.relogio b{color:var(--txt);font-size:14px}
+/* ---------- herói ---------- */
+.heroi{display:grid;grid-template-columns:1.15fr 1fr 1fr 1.15fr;gap:14px;margin-top:16px}
+@media (max-width:1100px){.heroi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.heroi{grid-template-columns:minmax(0,1fr)}}
+.kpi{position:relative;overflow:hidden}
+.kpi .rot{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1.3px;font-weight:700}
+.kpi .grande{font-size:34px;font-weight:800;letter-spacing:-.5px;line-height:1.15;margin-top:6px;font-family:var(--mono)}
+.kpi .med{font-size:24px;font-weight:800;margin-top:6px;letter-spacing:.5px}
+.kpi .det{font-size:12px;color:var(--sub);margin-top:6px}
+.kpi .det b{color:var(--txt);font-weight:600}
+.kpi.reg-NEGATIVO{border-color:rgba(255,92,122,.45);background:linear-gradient(160deg,rgba(255,92,122,.10),var(--sup) 55%)}
+.kpi.reg-POSITIVO{border-color:rgba(63,209,127,.45);background:linear-gradient(160deg,rgba(63,209,127,.10),var(--sup) 55%)}
+.kpi.reg-NEUTRO{border-color:var(--linha2)}
+.kpi.reg-NEGATIVO .med{color:var(--neg-t)}.kpi.reg-POSITIVO .med{color:var(--pos-t)}.kpi.reg-NEUTRO .med{color:var(--sub)}
+.barra-zg{position:relative;height:8px;border-radius:4px;background:var(--sup3);margin-top:12px}
+.barra-zg .z{position:absolute;top:0;bottom:0;background:rgba(255,179,92,.35);border-radius:4px}
+.barra-zg .p{position:absolute;top:-4px;width:3px;height:16px;border-radius:2px;background:var(--txt)}
+/* ---------- faixa "agora" ---------- */
+.agora{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 16px;border-radius:14px;border:1px solid var(--linha);background:var(--sup)}
+.agora .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;flex:none}
+.agora.livre .ic{background:var(--pos-f);color:var(--pos-t)}.agora.bloq .ic{background:var(--ambar-f);color:var(--ambar)}.agora.pos .ic{background:var(--azul-f);color:var(--azul)}
+.agora .tx{font-size:13.5px}.agora .tx b{font-weight:700}
+.agora .tx .sub{display:block;margin-top:2px}
+/* ---------- operacional ---------- */
+.sec-tit{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:26px 0 10px}
+.sec-tit h1{font-size:17px;margin:0;letter-spacing:.3px}
+.sec-tit h1 small{font-size:12px;color:var(--sub);font-weight:400;margin-left:8px}
+.pista{border:1px solid var(--linha);border-radius:18px;padding:14px;background:var(--sup);margin-top:12px}
+.pista.ativa{border-color:rgba(255,179,92,.45);box-shadow:0 0 0 1px rgba(255,179,92,.10) inset}
+.pista-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pista-cab .nome{font-weight:800;font-size:14px;letter-spacing:.3px}
+.pista-cab .info{font-size:12px;color:var(--sub)}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;border:1px solid transparent}
+.chip.ativa{background:var(--ambar);color:#1a1206}.chip.parada{background:var(--sup3);color:var(--sub);border-color:var(--linha2)}
+.chip.em{background:var(--azul-f);color:var(--azul);border-color:rgba(108,182,255,.35)}.chip.arm{background:var(--pos-f);color:var(--pos-t);border-color:rgba(63,209,127,.3)}
+.chip.blq{background:var(--ambar-f);color:var(--ambar);border-color:rgba(255,179,92,.3)}.chip.sem{background:var(--sup3);color:var(--sub);border-color:var(--linha2)}
+.regras{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:10px}
+.regra{position:relative;border:1px solid var(--linha);border-radius:14px;padding:12px 12px 10px;background:var(--sup2);min-width:0;display:flex;flex-direction:column;gap:6px}
+.regra::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--linha2)}
+.regra.EM::before{background:var(--azul)}.regra.ARM::before{background:var(--pos)}.regra.BLQ::before{background:var(--ambar)}
+.regra.compra{border-color:rgba(63,209,127,.5);background:linear-gradient(170deg,rgba(63,209,127,.08),var(--sup2) 60%)}
+.regra.venda{border-color:rgba(255,92,122,.5);background:linear-gradient(170deg,rgba(255,92,122,.08),var(--sup2) 60%)}
+.regra.compra::before{background:var(--pos)}.regra.venda::before{background:var(--neg)}
+.regra .r1{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.regra .nm{font-weight:700;font-size:13px}
+.regra .mg{font-family:var(--mono);font-size:10.5px;color:var(--sub2)}
+.regra .sit{font-size:15px;font-weight:800;letter-spacing:.3px}
+.regra .pq{font-size:11.5px;color:var(--sub);overflow-wrap:anywhere;max-height:3.1em;overflow:hidden}
+.regra .pos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--bg);border-radius:10px;padding:6px 8px;font-size:10.5px;color:var(--sub)}
+.regra .pos b{display:block;color:var(--txt);font-size:12px;font-family:var(--mono);font-weight:600}
+.regra .aberto{font-family:var(--mono);font-size:12.5px;font-weight:600}
+.regra .pe{display:flex;justify-content:space-between;gap:6px;font-size:11px;color:var(--sub);border-top:1px solid var(--linha);padding-top:6px;margin-top:auto;font-family:var(--mono)}
+.regra .desc{font-size:10.5px;color:var(--sub2)}
+.nova{display:inline-block;background:var(--ambar);color:#1a1206;border-radius:5px;font-size:9.5px;font-weight:800;padding:0 5px;margin-left:6px;letter-spacing:.5px}
+.ajustes{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ajustes span{font-size:11px;color:var(--sub);background:var(--sup2);border:1px solid var(--linha);border-radius:999px;padding:3px 10px}
+.ajustes span b{color:var(--ambar);font-weight:700}
+/* ---------- abas ---------- */
+.abas{display:flex;gap:4px;flex-wrap:wrap;margin:26px 0 0;border-bottom:1px solid var(--linha)}
+.abas button{background:none;border:0;border-bottom:2px solid transparent;color:var(--sub);padding:10px 14px;font:600 13px var(--sans);cursor:pointer;margin-bottom:-1px}
+.abas button.on{color:var(--txt);border-bottom-color:var(--ambar)}
+.abas button:hover{color:var(--txt)}
+.aba{display:none}.aba.on{display:block}
+/* ---------- tabelas, kv ---------- */
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:8px 6px;border-bottom:1px solid var(--linha);text-align:right;white-space:nowrap;font-size:12.5px}
+th{color:var(--sub);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+td{font-family:var(--mono);font-size:12px}
+td:first-child,th:first-child{text-align:left;font-family:var(--sans)}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.rol{overflow-x:auto;max-width:100%}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.kv div{background:var(--sup2);border:1px solid var(--linha);border-radius:10px;padding:8px 10px;font-size:11.5px;color:var(--sub);min-width:0}
+.kv b{display:block;color:var(--txt);font-size:15px;font-family:var(--mono);overflow-wrap:anywhere;margin-top:2px}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:10.5px;font-weight:700;background:var(--sup3);color:var(--sub);margin:2px 4px 2px 0}
+.tag.c{background:var(--pos-f);color:var(--pos-t)}.tag.v{background:var(--neg-f);color:var(--neg-t)}.tag.a{background:var(--ambar-f);color:var(--ambar)}
+tr.real td:first-child{color:var(--ambar);font-weight:700}
+.rotulo{font-size:11px;color:var(--ambar);background:var(--ambar-f);border:1px solid rgba(255,179,92,.3);border-radius:8px;padding:5px 9px;margin-top:10px}
+.grande{font-size:19px;font-weight:800}
+/* ---------- gráfico ---------- */
+.gr-cab{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.gr-jan{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.gr-jan button{background:var(--sup2);color:var(--sub);border:1px solid var(--linha);border-radius:8px;padding:4px 10px;font:600 12px var(--sans);cursor:pointer}
+.gr-jan button.on{color:#1a1206;background:var(--ambar);border-color:var(--ambar)}
+.gr-caixa{position:relative;width:100%;height:400px;background:#0c1110;border:1px solid var(--linha);border-radius:12px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+@media (max-width:640px){.gr-caixa{height:300px}}
+#gr{display:block;width:100%;height:100%}
+#gr text{font:10.5px var(--mono);font-variant-numeric:tabular-nums}
+.gr-dica{position:absolute;display:none;pointer-events:none;background:rgba(10,13,12,.95);border:1px solid var(--linha2);border-radius:10px;padding:8px 10px;font-size:11.5px;line-height:1.45;max-width:240px;z-index:5;font-family:var(--mono)}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--sub);margin-top:8px}
+.leg i{display:inline-block;width:16px;height:0;border-top:2px dashed;vertical-align:middle;margin-right:4px}
+#gr-leg .lg[data-k]{cursor:pointer;border-radius:4px;padding:0 3px}#gr-leg .lg[data-k]:hover{background:var(--sup2)}#gr-leg .lg.off{opacity:.35;text-decoration:line-through}
+/* ---------- escada ---------- */
+.escada{position:relative;height:480px;background:#0c1110;border:1px solid var(--linha);border-radius:12px;overflow:hidden;margin-top:4px}
+.ln{position:absolute;left:0;right:0;height:0;border-top:1px solid #34413c}
+.ln .rot{position:absolute;right:6px;transform:translateY(-50%);display:flex;gap:5px;align-items:center;background:#0c1110;padding:0 4px;font-size:11.5px;white-space:nowrap;max-width:72%;overflow:hidden}
+.ln .pre{position:absolute;left:6px;transform:translateY(-50%);font-size:11.5px;font-weight:700;background:#0c1110;padding:0 3px;white-space:nowrap;font-family:var(--mono)}
+.ln.zgl{border-top-color:#a3762f}.ln.preco{border-top:2px solid var(--ambar);z-index:4}
+.ln.preco .pre{color:#1a1206;background:var(--ambar);border-radius:5px;padding:1px 6px}
+.ln.geo{border-top:1px dashed;z-index:2}.ln.geo .pre{left:70px;font-weight:600;font-size:10.5px}
+.ln.ent{border-color:var(--azul)}.ln.ent .pre{color:var(--azul)}.ln.stp{border-color:var(--neg)}.ln.stp .pre{color:var(--neg-t)}.ln.tp{border-color:var(--pos)}.ln.tp .pre{color:var(--pos-t)}
+.zona{position:absolute;left:0;right:0;background:rgba(255,179,92,.12);border-top:1px dotted #a3762f;border-bottom:1px dotted #a3762f}
+.fase{font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--sup3);color:var(--sub)}
+.fase.NEAR{background:var(--azul-f);color:var(--azul)}.fase.TOUCHED{background:var(--ambar-f);color:var(--ambar)}.fase.BROKEN,.fase.RETEST{background:var(--neg-f);color:var(--neg-t)}
+.ev{font-size:10.5px;color:var(--sub)}
+.selo{font-size:10px;font-weight:700;padding:0 4px;border-radius:3px}.selo.c{background:var(--pos-f);color:var(--pos-t)}.selo.v{background:var(--neg-f);color:var(--neg-t)}
+.fora{font-size:11.5px;color:var(--sub);margin-top:8px}
+/* ---------- fluxo / macro ---------- */
+.jan{padding:9px 0;border-bottom:1px solid var(--linha)}.jan:last-child{border-bottom:0}
+.jan .t{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:12.5px}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--sup3);margin:6px 0}
+.bar i{display:block;height:100%}.bar .bc{background:var(--pos)}.bar .bv{background:var(--neg)}
+.jan.vale{background:var(--ambar-f);border-radius:10px;padding:9px 10px;outline:1px solid rgba(255,179,92,.35)}
+.alerta{display:inline-block;padding:1px 7px;border-radius:999px;background:var(--neg-f);color:var(--neg-t);font-size:10.5px;font-weight:800}
+.mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.mac{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mac div{background:var(--sup2);border:1px solid var(--linha);border-radius:10px;padding:8px 10px;font-size:11.5px;color:var(--sub);min-width:0}
+.mac b{display:block;color:var(--txt);font-size:16px;font-family:var(--mono)}
+.leit{margin-top:10px;font-size:12.5px;color:var(--sub)}.leit div{padding:3px 0}
+.voto{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--linha)}.voto:last-child{border-bottom:0}
+.voto .q{min-width:100px;font-weight:700;font-size:12px}.voto .t{font-size:12.5px;color:var(--sub);min-width:0;overflow-wrap:anywhere}
+.lista{font-size:12px;color:var(--sub);max-height:340px;overflow:auto;font-family:var(--mono)}
+.lista div{padding:4px 0;border-bottom:1px solid var(--linha);overflow-wrap:anywhere}.lista .h{color:var(--sub2);margin-right:6px}
+select{background:var(--sup2);color:var(--txt);border:1px solid var(--linha);border-radius:8px;padding:4px 8px;font:12px var(--sans)}
+details summary{cursor:pointer;color:var(--sub);font-size:12px}
+/* ES/NQ */
+.esnq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:700px){.esnq{grid-template-columns:minmax(0,1fr)}}
+.ativo{background:var(--sup2);border:1px solid var(--linha);border-radius:14px;padding:12px}
+.ativo .r1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ativo .px{font-family:var(--mono);font-size:22px;font-weight:700;margin-top:4px}
+.ativo .lv{font-family:var(--mono);font-size:11.5px;color:var(--sub);margin-top:6px;line-height:1.6}
+/* mesas */
+.mesas{display:flex;gap:4px;background:var(--sup2);border:1px solid var(--linha);border-radius:12px;padding:3px}
+.mesas button{background:none;border:0;color:var(--sub);font:700 12.5px var(--sans);padding:7px 14px;border-radius:9px;cursor:pointer;letter-spacing:.3px;display:flex;align-items:center;gap:7px}
+.mesas button.on{background:var(--ambar);color:#1a1206}
+.mesas button .dot{width:7px;height:7px;border-radius:50%;background:var(--neu)}
+.mesas button .dot.ok{background:var(--pos)}.mesas button .dot.em{background:var(--azul)}.mesas button .dot.er{background:var(--neg)}
+.mesa{display:none}.mesa.on{display:block}
+.ws-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+@media (max-width:900px){.ws-grid{grid-template-columns:minmax(0,1fr)}}
+.ws-at{border:1px solid var(--linha);border-radius:18px;padding:16px 18px;background:linear-gradient(180deg,var(--sup),#0f1412)}
+.ws-at.reg-NEGATIVO{border-color:rgba(255,92,122,.45)}.ws-at.reg-POSITIVO{border-color:rgba(63,209,127,.45)}
+.ws-at .cab{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.ws-at .cab b{font-size:15px;letter-spacing:.3px}
+.ws-at .lin{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.ws-at .lin div{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.ws-at .lin b{display:block;font-family:var(--mono);font-size:22px;color:var(--txt);text-transform:none;letter-spacing:0;margin-top:2px}
+.ws-at .lin b.reg-NEGATIVO{color:var(--neg-t)}.ws-at .lin b.reg-POSITIVO{color:var(--pos-t)}.ws-at .lin b.reg-NEUTRO{color:var(--sub);font-size:18px}
+.escadinha{margin-top:12px;border-top:1px solid var(--linha);padding-top:8px}
+.escadinha .l{display:flex;justify-content:space-between;gap:8px;padding:4px 2px;font-family:var(--mono);font-size:12px;border-bottom:1px dashed var(--linha)}
+.escadinha .l.px{color:var(--ambar);font-weight:700;border-bottom-style:solid}
+.escadinha .l .nm{font-family:var(--sans);color:var(--sub);font-size:11.5px}
+.escadinha .l.zg .nm{color:var(--ambar)}
+footer{margin-top:26px;color:var(--sub2);font-size:11.5px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--linha);padding-top:12px}
+</style>
+</head>
+<body>
+<main>
+<header class="topo"><div class="topo-in">
+  <a class="logo" href="/" title="XPRIME Trading">
+    <svg viewBox="0 0 540 120" role="img" aria-label="XPRIME Trading"><g transform="translate(8,10)"><line x1="20" y1="20" x2="80" y2="80" stroke="#EEF1EE" stroke-width="15" stroke-linecap="square"/><line x1="20" y1="80" x2="66" y2="34" stroke="#0a0d0c" stroke-width="27" stroke-linecap="butt"/><line x1="20" y1="80" x2="64" y2="36" stroke="#FFB35C" stroke-width="15" stroke-linecap="square"/><polygon points="56,14 86,14 86,44" fill="#FFB35C"/></g><text x="128" y="76" font-family="Sora,'Segoe UI',Arial,sans-serif" font-weight="700" font-size="62" letter-spacing="2" fill="#EEF1EE"><tspan fill="#FFB35C">X</tspan>PRIME</text><text x="132" y="104" font-family="'IBM Plex Mono',Consolas,monospace" font-weight="500" font-size="17" letter-spacing="10.5" fill="#9aa49f">TRADING</text></svg>
+  </a>
+  <div class="titulo"><b id="tit-mesa">Mesa Gold</b><span id="tit-sub">ouro · 9 regras · MT5 demo demo</span></div>
+  <nav class="mesas" id="mesas"><button data-m="gold" class="on"><span class="dot" id="dot-gold"></span>Mesa Gold</button><button data-m="ws"><span class="dot" id="dot-ws"></span>Mesa Wall Street</button></nav>
+  <div class="saude" id="saude"></div>
+  <span class="pill" id="pub-idade"><i></i>carregando</span>
+  <div class="relogio" id="relogio"></div>
+</div></header>
+
+<div class="erro" id="erro"></div>
+<div class="mesa on" id="mesa-gold">
+
+<!-- HERÓI -->
+<section class="heroi">
+  <div class="card kpi"><div class="rot">Ouro · GC</div><div class="grande" id="h-px">—</div><div class="det" id="h-px-det"></div></div>
+  <div class="card kpi" id="h-reg-card"><div class="rot">Regime de gamma</div><div class="med" id="h-reg">—</div><div class="det" id="h-reg-det"></div></div>
+  <div class="card kpi"><div class="rot">Zero Gamma</div><div class="med num" id="h-zg">—</div><div class="det" id="h-zg-det"></div><div class="barra-zg" id="h-zg-bar"></div></div>
+  <div class="card kpi"><div class="rot">Resultado real hoje · MT5</div><div class="grande" id="h-res">—</div><div class="det" id="h-res-det"></div></div>
+</section>
+<div class="agora" id="agora"><div class="ic">·</div><div class="tx">carregando…</div></div>
+
+<!-- OPERACIONAL -->
+<div class="sec-tit"><h1>Operacional <small id="op-sub">9 regras · risco 0,25% cada · executam no MT5 demo</small></h1><span class="sub" id="op-risco"></span></div>
+<div id="pistas"></div>
+<div class="ajustes">
+  <span><b>Stop</b> pela máxima/mínima do minuto do GC</span>
+  <span><b>Overnight</b> parada com as opções de NY abertas e 30 min antes</span>
+  <span><b>Agressão no nível</b> só a favor do gamma</span>
+  <span><b>Execução</b> stop pelo GC + emergência na corretora</span>
+  <span><b>Macro</b> só como termômetro</span>
+</div>
+
+<!-- GRÁFICO -->
+<div class="sec-tit"><h1>Preço × mapa do gamma <small id="gr-info"></small></h1>
+  <div class="gr-jan" id="gr-jan"><button data-tf="M5">M5</button><button data-tf="M15">M15</button><button data-tf="M30">M30</button><button data-tf="H1">H1</button><button data-tf="H4">H4</button></div></div>
+<section class="card">
+  <div class="gr-cab">
+    <div class="gr-jan" id="gr-esc"><span class="sub">Escala</span><button data-m="todos">Todos os níveis</button><button data-m="perto">Perto do preço</button><button data-m="auto">Auto</button><span class="sub" id="gr-modo"></span></div>
+    <div class="gr-jan" id="gr-perf"><span class="sub">Perfil</span><button data-p="full">Full</button><button data-p="zero">0DTE</button><button data-p="one">Próx.</button></div>
+    <span class="sub" id="gr-hist"></span>
+  </div>
+  <div class="gr-caixa" id="gr-caixa"><svg id="gr" xmlns="http://www.w3.org/2000/svg"></svg><div class="gr-dica" id="gr-dica"></div></div>
+  <div class="leg" id="gr-leg"></div>
+  <div class="sub" style="margin-top:6px">Arraste a faixa de preços (direita) para esticar/encolher · arraste o gráfico na vertical para deslocar · roda do mouse na faixa = zoom · duplo clique na faixa = Auto.</div>
+</section>
+
+<!-- ABAS -->
+<nav class="abas" id="abas">
+  <button data-a="res" class="on">Resultados</button>
+  <button data-a="trades">Trades no MT5</button>
+  <button data-a="niveis">Níveis &amp; entrada</button>
+  <button data-a="fluxo">Fluxo &amp; macro</button>
+  <button data-a="regime">Regime &amp; Zero Gamma</button>
+  <button data-a="diag">Diagnóstico</button>
+</nav>
+
+<div class="aba on" data-a="res">
+  <section class="card" style="margin-top:14px">
+    <h2>Real (MT5) × simulado (GC) por regra <span class="sub" id="td-desde"></span></h2>
+    <div class="kv" id="td-kv" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))"></div>
+    <div class="rol" style="margin-top:12px"><table><thead><tr><th>Regra</th><th>Real hoje</th><th>US$ real</th><th>Simulado hoje</th><th>US$ simulado</th><th>Acum. real</th><th>Acum. simulado</th></tr></thead><tbody id="td-var"></tbody></table></div>
+  </section>
+  <section class="card" style="margin-top:14px">
+    <h2>Placar das regras pelo GC <span class="sub" id="res-ses"></span></h2>
+    <div class="rol"><table><thead><tr><th>Quem</th><th>Hoje: trades</th><th>acerto</th><th>R</th><th>US$</th><th>Acum.: trades</th><th>acerto</th><th>R</th><th>US$</th></tr></thead><tbody id="res"></tbody></table></div>
+    <div class="rol" style="margin-top:10px"><table><thead><tr><th>Trades de hoje (simulado)</th><th>Entrada</th><th>Saídas</th><th>US$</th><th>R</th></tr></thead><tbody id="res-tr"></tbody></table></div>
+    <p class="diz"><b>Critério:</b> a regra só é promovida com ≥ 30 trades, R positivo e dias de alta e de queda (medição até 30/11).</p>
+  </section>
+</div>
+
+<div class="aba" data-a="trades">
+  <section class="card" style="margin-top:14px">
+    <h2>Trades reais no MT5 demo · XAUUSDz <span class="sub" id="td-ses"></span></h2>
+    <div class="rol"><table><thead><tr><th>Regra</th><th>Entrada</th><th>Lado</th><th>Lotes</th><th>Preço MT5 (GC)</th><th>SL</th><th>TP</th><th>Saídas</th><th>US$</th></tr></thead><tbody id="td-real"></tbody></table></div>
+    <details style="margin-top:12px"><summary>Trades simulados de cada regra</summary><div id="td-sim"></div></details>
+  </section>
+  <section class="card" style="margin-top:14px">
+    <h2>Execução · <span id="ex-var" class="sub"></span></h2>
+    <div class="kv" id="ex-kv" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
+    <div id="ex-lin" style="margin-top:10px"></div>
+    <h2 style="margin-top:14px">Últimos eventos do EA</h2>
+    <div class="lista" id="ex-log" style="max-height:180px"></div>
+  </section>
+</div>
+
+<div class="aba" data-a="niveis">
+  <div class="grade g2">
+    <section class="card">
+      <h2>Escada de preço · níveis e fases <span class="sub" id="esc-info"></span></h2>
+      <div class="escada" id="escada"></div>
+      <div class="leg"><span><i style="border-color:var(--ambar);border-top-style:solid"></i>preço</span><span><i style="border-color:var(--azul)"></i>entrada</span><span><i style="border-color:var(--neg)"></i>stop</span><span><i style="border-color:var(--pos)"></i>TP</span><span>faixa âmbar = zona do ZG</span></div>
+      <div class="fora" id="fora"></div>
+    </section>
+    <section class="card">
+      <h2>Melhor entrada pela regra <span class="sub" id="me-est"></span></h2>
+      <div class="grande" id="me-tit">—</div>
+      <div class="kv" id="me-kv" style="margin-top:10px;grid-template-columns:repeat(3,minmax(0,1fr))"></div>
+      <div class="rol" id="me-cands" style="margin-top:10px"></div>
+      <div class="rotulo">geometria da regra Gamma puro · não é ordem</div>
+    </section>
+  </div>
+</div>
+
+<div class="aba" data-a="fluxo">
+  <div class="grade g2i">
+    <section class="card"><h2>Agressão por janela <span class="sub" id="agr-fonte"></span></h2><div id="agr"></div>
+      <p class="diz"><b>Uso:</b> Juiz (veto) e Confirmação; Agressão no nível só a favor do gamma. Moldura âmbar = leitura que "vale" no histórico do pregão.</p></section>
+    <section class="card"><h2>Macro · termômetro <span class="sub" id="mac-hora"></span></h2><div class="mac" id="mac"></div><div class="leit" id="mac-leit"></div>
+      <p class="diz"><b>Decisão do presidente (19/11):</b> macro só como termômetro — nenhuma regra usa.</p></section>
+  </div>
+</div>
+
+<div class="aba" data-a="regime">
+  <div class="grade g3">
+    <section class="card"><h2>Regime duplo</h2><div class="kv" id="rg-kv"></div></section>
+    <section class="card"><h2>Zero Gamma · zona · amplitude</h2><div class="kv" id="zg-kv"></div><div class="sub" id="zg-leit" style="margin-top:8px"></div><div class="rol" id="amp" style="margin-top:10px"></div></section>
+    <section class="card"><h2>Fontes que decidem</h2><div id="placar"></div></section>
+  </div>
+</div>
+
+<div class="aba" data-a="diag">
+  <div class="grade g3">
+    <section class="card"><h2>Frescor das fontes</h2><div class="rol"><table><thead><tr><th>Fonte</th><th>Carimbo</th><th>Idade</th><th></th></tr></thead><tbody id="fresc"></tbody></table></div><div class="sub" id="agenda" style="margin-top:8px"></div></section>
+    <section class="card"><h2>Journal FlowOne GC</h2><div class="lista" id="jr"></div></section>
+    <section class="card"><h2>Eventos <select id="ev-sel"></select></h2><div class="lista" id="ev"></div></section>
+  </div>
+</div>
+
+</div><!-- /mesa-gold -->
+
+<!-- ===================== MESA WALL STREET (ES/NQ) ===================== -->
+<div class="mesa" id="mesa-ws">
+  <div class="agora" id="ws-agora"><div class="ic">·</div><div class="tx">carregando…</div></div>
+  <div class="ws-grid" id="ws-ativos"></div>
+  <div class="sec-tit"><h1>Operacional ES/NQ <small>níveis de gamma do Jarvis · sinal na vela M5 · risco 0,25% por trade</small></h1><span class="sub" id="ws-fontes"></span></div>
+  <div class="ajustes" style="margin-top:0">
+    <span><b>Mapa</b> Zero Gamma, paredes de put/call e majors OI (mediana)</span>
+    <span><b>NEGATIVO</b> só rompimento vendedor</span>
+    <span><b>POSITIVO</b> reversão no nível</span>
+    <span><b>Janela</b> 12:00–17:30 BRT · zera 17:40</span>
+    <span><b>Stop mínimo</b> ES 0,15% · NQ 0,30%</span>
+    <span><b>Exaustão</b> ES 0,6% · NQ 0,9% em 60 min</span>
+    <span><b>Cartão do Jarvis</b> fora do gatilho</span>
+  </div>
+  <div class="grade g2i">
+    <section class="card"><h2>Trades (motor) <span class="sub">R pela regra · execução no MES/MNQ e cópia no MT5</span></h2>
+      <div class="rol"><table><thead><tr><th>Ativo</th><th>Entrada</th><th>Tipo</th><th>Lado</th><th>Preço</th><th>Stop</th><th>TP1 / TP2</th><th>Saída</th><th>R</th></tr></thead><tbody id="ws-trades"></tbody></table></div></section>
+    <section class="card"><h2>Eventos do motor</h2><div class="lista" id="ws-ev"></div></section>
+  </div>
+  <section class="card" style="margin-top:14px"><h2>Robô e ordens</h2><div class="kv" id="ws-robo" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"></div>
+    <p class="diz"><b>Robô:</b> XpJarvisNiveisExec no gráfico MES 12-26 de 1 min (Sim101 → MT5 pelo XpCopier) · servidor de decisão na porta 3482 · aba do Jarvis logada no Chrome (renovar o login antes das 10:55).</p></section>
+</div>
+
+<footer><span id="rodape"></span><span>XPRIME Trading · Mesa Gold e Mesa Wall Street · contas demo até 30/11</span></footer>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f1 = v => (v == null || isNaN(v)) ? "—" : Number(v).toFixed(1);
+const f2 = v => (v == null || isNaN(v)) ? "—" : Number(v).toFixed(2);
+const sg = (v, n) => (v == null || isNaN(v)) ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(n == null ? 1 : n);
+const usd = v => (v == null || isNaN(v)) ? "—" : (v >= 0 ? "+" : "−") + "US$ " + Math.abs(v).toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const lado = l => l > 0 ? "compra" : l < 0 ? "venda" : "—";
+const cls = v => v > 0 ? "c" : v < 0 ? "v" : "n";
+const idade = s => s == null ? "—" : s < 120 ? Math.round(s) + " s" : s < 7200 ? Math.round(s / 60) + " min" : (s / 3600).toFixed(1) + " h";
+const pct = v => v == null ? "—" : v + "%";
+let D = null, E = null;
+const NOMES_V = {"V21":"Gamma 2.1 (vela M5)","V2-PURA":"Gamma puro","V2-VETO":"Gamma + Juiz","V2-CONFIRMA":"Gamma + Confirmação","NIVEL-AGRESSAO":"Agressão no nível"};
+const DESC_V = {"V21":"rompimento/reversão só no fechamento da vela M5","V2-PURA":"regra base do gamma","V2-VETO":"não entra com agressão contra","V2-CONFIRMA":"só entra com agressão a favor que vale","NIVEL-AGRESSAO":"no nível, na direção da agressão (a favor do gamma)"};
+function nomeV(id){ if(!id) return ""; const n = id.endsWith("-N"); const b = NOMES_V[n ? id.slice(0,-2) : id] || id; return b + (n ? " · Overnight" : " · NY"); }
+const baseV = id => id && id.endsWith("-N") ? id.slice(0, -2) : id;
+const regTxt = r => !r || r === "CONFLITO" ? "NEUTRO" : r;
+
+/* ---------- abas ---------- */
+(function () {
+  let a0 = "res"; try { a0 = localStorage.getItem("xp_ouro_aba") || "res"; } catch (e) {}
+  const liga = a => { for (const b of document.querySelectorAll("#abas button")) b.classList.toggle("on", b.dataset.a === a);
+    for (const s of document.querySelectorAll(".aba")) s.classList.toggle("on", s.dataset.a === a);
+    try { localStorage.setItem("xp_ouro_aba", a); } catch (e) {} };
+  $("abas").addEventListener("click", ev => { const a = (ev.target.dataset || {}).a; if (a) liga(a); });
+  liga(a0);
+})();
+
+/* ---------- cabeçalho, herói, faixa "agora" ---------- */
+function cabecalho(d) {
+  const fr = d.frescor || {}, m5 = d.mt5 || {};
+  const p = (cls_, nome, val, tit) => `<span class="pill ${cls_}" title="${esc(tit || "")}"><i></i>${nome} <b>${val}</b></span>`;
+  const gf = fr.gamma_full || {}, pf = fr.preco_fita || {}, ap = fr.api_3480 || {};
+  const nt = d.noturno || {};
+  const gNome = nt.ativo ? "retrato" : "ao vivo";
+  const ea = !m5.ativo ? p("er", "MT5", "desligado") : p(m5.batimento_s > 15 ? "er" : m5.autotrading === false ? "al" : "ok", "MT5", m5.autotrading === false ? "Algo OFF" : idade(m5.batimento_s), "batimento do EA XpOuroV2Mt5 e Algo Trading");
+  $("saude").innerHTML =
+    p(pf.ok ? "ok" : "er", "Fita GC", idade(pf.idade_s), "preço do GC vindo do NT8 (XpOuroFita)") +
+    p(nt.ativo ? "al" : gf.ok ? "ok" : "er", "Gamma " + gNome, nt.ativo ? (nt.retrato_brt || "").slice(6, 11) : idade(gf.idade_s), "níveis de gamma (Alfa Omega / gexbot)") +
+    ea + p(ap.ok ? "ok" : "er", "Coletor", ap.ok ? "ok" : "fora", "servidor 3480: agressão e macro");
+  $("relogio").innerHTML = `<b>${esc((d.agora_brt || "").slice(6, 11))}</b> BRT<br>NY ${esc(d.agora_ny || "")} · ${esc(d.pregao || "")}`;
+}
+
+function heroi(d) {
+  const r = d.regime || {}, z = d.zg || {}, m5 = d.mt5 || {}, h = m5.hoje || {};
+  $("h-px").textContent = d.px ? f1(d.px) : "—";
+  $("h-px-det").innerHTML = `${esc(d.instrumento || "GC")} · sessão ${esc(d.sessao || "")}`;
+  const rl = regTxt(r.leitura);
+  $("h-reg-card").className = "card kpi reg-" + rl;
+  $("h-reg").textContent = rl;
+  $("h-reg-det").innerHTML = rl === "NEGATIVO" ? "gamma negativa abaixo do ZG · <b>rompimentos para baixo</b>"
+    : rl === "POSITIVO" ? "gamma positiva acima do ZG · <b>reversões nos níveis</b>"
+    : `sem entrada · ${esc(r.motivo || "as leituras discordam")}`;
+  $("h-zg").textContent = f1(z.zg);
+  const dist = d.px && z.zg ? d.px - z.zg : null;
+  $("h-zg-det").innerHTML = `preço ${dist == null ? "—" : `<b>${sg(dist)}</b> pts`} · ${z.estavel == null ? "" : z.estavel ? '<span class="c">estável</span>' : `<span class="a">instável (${f1(z.andou)} pts)</span>`}`;
+  if (z.zona && d.px) {
+    const lo = Math.min(z.zona[0], d.px) - 6, hi = Math.max(z.zona[1], d.px) + 6, x = v => ((v - lo) / (hi - lo) * 100).toFixed(1) + "%";
+    $("h-zg-bar").innerHTML = `<div class="z" style="left:${x(z.zona[0])};width:calc(${x(z.zona[1])} - ${x(z.zona[0])})"></div><div class="p" style="left:${x(d.px)}"></div>`;
+  }
+  const nPos = Object.values(m5.posicoes || {}).reduce((a, l) => a + l.length, 0);
+  $("h-res").innerHTML = m5.ativo ? `<span class="${cls(h.usd)}">${usd(h.usd)}</span>` : '<span class="a" style="font-size:18px">EA desligado</span>';
+  $("h-res-det").innerHTML = m5.ativo ? `${h.n || 0} trades · ${h.acertos || 0} acertos · <b>${nPos}</b> posição(ões) aberta(s)` : "";
+}
+
+function agora(d) {
+  const vs = d.variantes || [], emPos = vs.filter(c => c.pos), arm = vs.filter(c => c.estado === "ARMADO");
+  const bl = d.bloqueios || [], el = $("agora");
+  let k, ic, t;
+  const psR = (d.mt5 || {}).posicoes || {}, nReal = Object.values(psR).filter(l => l && l.length).length;
+  if (emPos.length) { k = "pos"; ic = "●"; t = `<b>${emPos.length} regra(s) posicionada(s):</b> ${emPos.map(c => esc(nomeV(c.variante)) + " " + (c.pos.lado > 0 ? "compra" : "venda") + " @ " + f1(c.pos.entrada)).join(" · ")}<span class="sub">no MT5: ${nReal ? nReal + " regra(s) com posição real" : "nenhuma posição real (fechadas à mão ou já saíram)"}</span>`; }
+  else if (bl.length) { k = "bloq"; ic = "‖"; t = `<b>Linha NY sem entrada nova agora</b><span class="sub">${esc(bl.join(" · "))}</span>`; }
+  else if (arm.length) { k = "livre"; ic = "◆"; t = `<b>Armado:</b> ${arm.map(c => esc(nomeV(c.variante))).join(" · ")}<span class="sub">aguardando o preço confirmar</span>`; }
+  else { k = "livre"; ic = "✓"; t = `<b>Liberado · aguardando setup</b><span class="sub">regime ${esc(regTxt((d.regime || {}).leitura))} · nenhuma regra armada</span>`; }
+  el.className = "agora " + k; el.innerHTML = `<div class="ic">${ic}</div><div class="tx">${t}</div>`;
+}
+
+function regraCard(c, d) {
+  const m5 = d.mt5 || {}, ps = (m5.posicoes || {})[c.variante] || [];
+  const lt = ps.reduce((a, x) => a + (+(x.lotes ?? 0) || 0), 0), flut = ps.reduce((a, x) => a + (+(x.lucro ?? 0) || 0), 0);
+  const ladoArm = ((c.armados || [])[0] || {}).lado;
+  const parada = /Overnight parada/.test(c.por || "");
+  const sit = c.pos ? (c.pos.lado > 0 ? "COMPRADA" : "VENDIDA") : c.estado === "ARMADO" ? (ladoArm > 0 ? "COMPRA ARMADA" : ladoArm < 0 ? "VENDA ARMADA" : "ARMADA") : parada ? "PARADA" : c.estado === "BLOQUEADO" ? "BLOQUEADA" : "SEM SETUP";
+  const k = c.pos ? "EM" : c.estado === "ARMADO" ? "ARM" : c.estado === "BLOQUEADO" ? "BLQ" : "";
+  const chip = c.pos ? '<span class="chip em">em posição</span>' : c.estado === "ARMADO" ? '<span class="chip arm">armada</span>' : parada ? '<span class="chip parada">parada</span>' : c.estado === "BLOQUEADO" ? '<span class="chip blq">bloqueada</span>' : '<span class="chip sem">aguardando</span>';
+  const hc = c.hoje || {}, tc = c.total || {}, rv = ((m5.por_variante || {})[c.variante] || {}).total || {};
+  let pos = "";
+  if (c.pos) {
+    const p = c.pos, pts = d.px ? p.lado * (d.px - p.entrada) : null;
+    pos = `<div class="pos"><div>entrada<b>${f1(p.entrada)}</b></div><div>stop<b>${f1(p.stop)}</b></div><div>TP1<b>${f1(p.tp1)}</b></div><div>TP2<b>${f1(p.tp2)}</b></div></div>` +
+      `<div class="aberto">${pts != null ? `<span class="${cls(pts)}">${sg(pts)} pts</span>` : ""}${ps.length ? ` · MT5 ${lt.toFixed(2)} lote · <span class="${cls(flut)}">${usd(flut)}</span>` : ' · <span class="sub">MT5 sem posição</span>'}${p.tp1_feito ? ' · <span class="tag c">TP1 feito</span>' : ""}</div>`;
+  }
+  const corSit = c.pos ? (c.pos.lado > 0 ? "c" : "v") : c.estado === "ARMADO" ? "c" : "n";
+  return `<div class="regra ${k} ${c.pos ? (c.pos.lado > 0 ? "compra" : "venda") : ""}" title="${esc(c.descricao)}">` +
+    `<div class="r1"><span class="nm">${esc(NOMES_V[baseV(c.variante)] || c.variante)}${baseV(c.variante) === "V21" ? '<span class="nova">NOVA</span>' : ""}</span>${chip}</div>` +
+    `<div class="desc">${esc(DESC_V[baseV(c.variante)] || "")}</div>` +
+    `<div class="sit ${corSit}">${sit}</div>` +
+    (c.pos ? pos : `<div class="pq">${esc(c.por || "")}</div>`) +
+    `<div class="pe"><span>hoje ${hc.n || 0} · ${f2(hc.R)}R</span><span title="acumulado real no MT5 desde 18/11">real <span class="${cls(rv.usd)}">${m5.ativo ? usd(rv.usd) : "—"}</span></span><span class="mg">#${c.magic || ""}</span></div></div>`;
+}
+
+function operacional(d) {
+  const vs = d.variantes || [], ny = vs.filter(c => !c.noturno), on = vs.filter(c => c.noturno);
+  const nt = d.noturno || {};
+  const nyParada = ny.every(c => /gamma STALE/.test(c.por || "")) && !nt.opcoes_abertas;
+  const onParada = on.every(c => /Overnight parada/.test(c.por || ""));
+  const pista = (nome, info, ativa, motivo, lista) => `<div class="pista ${ativa ? "ativa" : ""}"><div class="pista-cab"><span class="nome">${nome}</span>${ativa ? '<span class="chip ativa">ativa agora</span>' : '<span class="chip parada">parada</span>'}<span class="info">${info}${motivo ? " · " + motivo : ""}</span></div><div class="regras">${lista.map(c => regraCard(c, d)).join("")}</div></div>`;
+  $("pistas").innerHTML =
+    pista("Pregão NY", "gamma ao vivo · 11:35–18:15 BRT", !nyParada, nyParada ? "opções de NY fechadas (sem gamma ao vivo)" : "", ny) +
+    pista("Overnight", "retrato do fechamento das opções · Ásia e Londres", !onParada, onParada ? "parada com as opções de NY abertas e 30 min antes" : (nt.retrato_brt ? "retrato " + esc(nt.retrato_brt) : ""), on);
+  const psR = (d.mt5 || {}).posicoes || {}, nReal = Object.values(psR).filter(l => l && l.length).length, nSim = vs.filter(c => c.pos).length;
+  $("op-risco").innerHTML = `risco aberto no MT5: <b class="${nReal ? "a" : ""}">${(nReal * 0.25).toFixed(2)}%</b> (${nReal} regra(s) com posição real${nSim !== nReal ? ` · ${nSim} no simulado` : ""})`;
+}
+
+/* ---------- ES/NQ (porta 3482) ---------- */
+function esnq() {
+  const el = $("esnq");
+  if (!E) { el.innerHTML = '<span class="sub">servidor ES/NQ (3482) sem resposta</span>'; return; }
+  const at = E.ativos || {};
+  el.innerHTML = ["ES", "NQ"].map(a => {
+    const x = at[a] || {}, rg = x.regime || "NEUTRO", p = x.pos;
+    const chip = p ? '<span class="chip em">em posição</span>' : (x.bloqueios || []).length ? '<span class="chip parada">fora da janela</span>' : x.fresco ? '<span class="chip arm">liberado</span>' : '<span class="chip blq">Jarvis velho</span>';
+    return `<div class="ativo"><div class="r1"><b>${a} → ${esc(x.micro || "")}</b>${chip}</div>` +
+      `<div class="px">${x.px == null ? '<span class="sub" style="font-size:13px">sem preço do NT8 (executor desligado)</span>' : f2(x.px)}</div>` +
+      `<div class="sub">regime <b class="${rg === "NEGATIVO" ? "v" : rg === "POSITIVO" ? "c" : "n"}">${esc(rg)}</b>${x.motivo ? " · " + esc(x.motivo) : ""} · Jarvis ${x.fresco ? "fresco" : "velho"} (${x.fonte_s == null ? "—" : x.fonte_s + " s"})${x.base != null ? " · base " + sg(x.base, 2) : ""}</div>` +
+      (p ? `<div class="lv">${p.lado > 0 ? "COMPRA" : "VENDA"} ${esc(p.tipo)} @ ${f2(p.entrada)} · stop ${f2(p.stop)} · TP1 ${f2(p.tp1)} · TP2 ${f2(p.tp2)}</div>` : "") +
+      `<div class="lv">${(x.niveis || []).slice().reverse().map(n => `${f2(n[0])} ${esc(n[1])}`).join("<br>") || "sem níveis"}</div>` +
+      `<div class="sub" style="margin-top:6px">${esc((x.bloqueios || []).join(" · "))}</div></div>`;
+  }).join("");
+}
+
+function escada(d) {
+  const el = $("escada"), px = d.px, mapa = d.mapa || [], me = (d.melhor || {}).geo, z = (d.zg || {}).zona;
+  if (!px || !mapa.length) { el.innerHTML = `<div class="sub" style="padding:12px">sem preço ou sem níveis</div>`; $("fora").textContent = ""; return; }
+  const JAN = 40;
+  const dentro = mapa.filter(n => Math.abs(n.preco - px) <= JAN), fora = mapa.filter(n => Math.abs(n.preco - px) > JAN);
+  const geo = [];
+  if (me && me.entrada != null) geo.push(["ent", "entrada", me.entrada], ["stp", "stop", me.stop], ["tp", "TP1", me.tp1], ["tp", "TP2", me.tp2]);
+  const o = {}, p = null;      // v1 retirado do painel (19/11)
+  const v1l = [];
+  if (o.estado === "ABERTA") {
+    const cand = (p ? [["entrada", p.entrada]] : []).concat([["stop", o.stop], ["alvo", o.alvo]]);
+    for (const [n, v] of cand) {      // preços iguais (ex.: stop na entrada) viram uma linha só
+      const ja = v1l.find(x => Math.abs(x[1] - v) < 0.05);
+      if (ja) ja[0] += " = " + n; else v1l.push(["v1 " + n, v]);
+    }
+  }
+  const ps = [px].concat(dentro.map(n => n.preco), geo.concat(v1l.map(x => ["", "", x[1]])).map(g => g[2]).filter(v => v != null && Math.abs(v - px) <= JAN * 1.5));
+  if (z) ps.push(z[0], z[1]);
+  let hi = Math.max(...ps) + 3, lo = Math.min(...ps) - 3;
+  if (hi - lo < 20) { const m = (hi + lo) / 2; hi = m + 10; lo = m - 10; }
+  const y = v => ((hi - v) / (hi - lo) * 100).toFixed(2) + "%";
+  const vis = v => v != null && v <= hi && v >= lo;
+  let h = "";
+  if (z) h += `<div class="zona" style="top:${y(z[1])};height:calc(${y(z[0])} - ${y(z[1])})"></div>`;
+  for (const n of dentro) {
+    const seta = n.origem > 0 ? "↑" : n.origem < 0 ? "↓" : "";
+    const selos = (n.selos || []).map(s => `<span class="selo ${s.dir > 0 ? "c" : "v"}" title="${esc(s.brt)} ${esc(s.tipo)} ${f1(s.preco)}">${esc(s.tipo)}${s.dir > 0 ? "▲" : "▼"}</span>`).join("");
+    h += `<div class="ln ${n.zg ? "zgl" : ""}" style="top:${y(n.preco)}"><span class="pre num">${f1(n.preco)}</span>` +
+      `<span class="rot"><span>${esc(n.nome)}</span><span class="fase ${esc(n.fase)}">${esc(n.fase || "—")}</span><span class="ev">${seta}</span>` +
+      (n.ultimo_evento ? `<span class="ev">${esc(n.ultimo_evento)} ${esc((n.ultimo_evento_brt || "").slice(0, 5))}</span>` : "") +
+      `<span class="ev num">${sg(n.dist)}</span>${selos}</span></div>`;
+  }
+  for (const g of geo) if (vis(g[2])) h += `<div class="ln geo ${g[0]}" style="top:${y(g[2])}"><span class="pre num">${g[1]} ${f1(g[2])}</span></div>`;
+  for (const x of v1l) if (vis(x[1])) h += `<div class="ln v1" style="top:${y(x[1])}"><span class="pre num">${x[0]} ${f1(x[1])}</span></div>`;
+  h += `<div class="ln preco" style="top:${y(px)}"><span class="pre num">${f1(px)}</span></div>`;
+  el.innerHTML = h;
+  $("esc-info").textContent = `${f1(lo)} – ${f1(hi)}`;
+  $("fora").innerHTML = fora.length ? "Fora da escada (± " + JAN + " pts): " + fora.map(n => `${esc(n.nome)} ${f1(n.preco)} (${esc(n.fase)})`).join(" · ") : "";
+}
+
+function melhor(d) {
+  const m = d.melhor || {}, g = m.geo;
+  $("me-est").textContent = m.estado || "";
+  if (!g) { $("me-tit").textContent = m.estado === "SEM DADOS" ? "sem dados" : "sem setup no regime atual"; $("me-kv").innerHTML = ""; }
+  else {
+    $("me-tit").innerHTML = `<span class="${cls(g.lado)}">${esc(g.tipo)} · ${lado(g.lado).toUpperCase()}</span> <span class="sub">nível ${f1(g.nivel)}${g.nome ? " " + esc(g.nome) : ""}</span>`;
+    $("me-kv").innerHTML = [["Entrada", f1(g.entrada)], ["Stop", f1(g.stop)], ["TP1", f1(g.tp1)], ["TP2", f1(g.tp2)], ["R:R", f2(g.rr)], ["MGC", g.qtd == null ? "—" : g.qtd]]
+      .map(x => `<div>${x[0]}<b>${x[1]}</b></div>`).join("");
+  }
+  const c = m.cands || [];
+  $("me-cands").innerHTML = c.length ? `<table><thead><tr><th>Candidata</th><th>Entr.</th><th>Stop</th><th>TP1</th><th>R:R</th><th></th></tr></thead><tbody>` +
+    c.map(x => `<tr><td class="${cls(x.lado)}">${lado(x.lado)} ${f1(x.nivel)}</td><td>${f1(x.entrada)}</td><td>${f1(x.stop)}</td><td>${f1(x.tp1)}</td><td>${f2(x.rr)}</td><td>${x.valido ? '<span class="tag c">ok</span>' : `<span class="tag v">${esc(x.motivo)}</span>`}</td></tr>`).join("") + "</tbody></table>" : "";
+}
+
+function v1card(d) {
+  const m5 = d.mt5 || {}, ex = d.exec || {};
+  $("ex-var").textContent = "9 regras · EA XpOuroV2Mt5 · conta " + (m5.conta || "demo") + " · XAUUSDz";
+  if (!m5.ativo) {
+    $("ex-kv").innerHTML = `<div>EA do MT5<b class="a" style="font-size:14px">${esc(m5.motivo || "EA do MT5 ainda não ligado")}</b></div><div>Ordens gravadas em<b style="font-size:11px">${esc(m5.pasta || "")}</b></div>`;
+  } else {
+    const nPos = Object.values(m5.posicoes || {}).reduce((a, l) => a + l.length, 0);
+    $("ex-kv").innerHTML = [["Batimento do EA", m5.batimento_s == null ? "—" : `<span class="${m5.batimento_s > 15 ? "v" : "c"}">${idade(m5.batimento_s)}</span>`],
+      ["AutoTrading", m5.autotrading == null ? "—" : m5.autotrading ? '<span class="c">ligado</span>' : '<span class="v">DESLIGADO</span>'],
+      ["Conta", esc(m5.conta || "—")], ["Posições abertas", nPos],
+      ["Real hoje (9 regras)", `<span class="${cls((m5.hoje || {}).usd)}">${usd((m5.hoje || {}).usd)}</span>`]]
+      .map(x => `<div>${x[0]}<b style="font-size:14px">${x[1]}</b></div>`).join("");
+  }
+  const vs = (d.variantes || []).map(c => c.variante);
+  const linhas = vs.map(v => {
+    const ps = (m5.posicoes || {})[v] || [];
+    const pt = ps.length ? ps.map(x => `${(+(x.lado) || (/sell|venda/i.test(x.tipo || "") ? -1 : 1)) > 0 ? "▲" : "▼"} ${x.lotes ?? x.volume ?? "?"} @ ${f1(x.preco ?? x.price)} · SL ${f1(x.sl)} · TP ${f1(x.tp)} · <span class="${cls(+(x.lucro ?? x.profit ?? 0))}">${usd(+(x.lucro ?? x.profit ?? 0))}</span>`).join("<br>") : '<span class="sub">flat</span>';
+    return `<tr><td>${esc(nomeV(v))}<br><span class="sub">${(m5.magics || {})[v] || ""}</span></td><td style="white-space:normal">${pt}</td></tr>`;
+  }).join("");
+  $("ex-lin").innerHTML = `<div class="rol"><table><thead><tr><th>Variante · magic</th><th>Posição real no MT5</th></tr></thead><tbody>${linhas}</tbody></table></div>`;
+  $("ex-log").innerHTML = (m5.eventos || []).map(e => `<div><span class="h">${esc((e.utc || "").replace("T", " ").slice(5, 19))}</span>${esc(nomeV(e.variante))} · <b class="${/RECUSA|ERRO/.test(e.evento || "") ? "v" : ""}">${esc(e.evento)}</b> ${esc(e.lotes || "")} @ ${esc(e.preco_mt5 || "")}${e.lucro_usd ? " · US$ " + esc(e.lucro_usd) : ""}${e.comentario ? " · " + esc(e.comentario) : ""}</div>`).join("") || '<span class="sub">sem eventos do EA</span>';
+}
+
+function agressao(d) {
+  const a = d.agressao || {}, js = a.janelas || {};
+  $("agr-fonte").textContent = `fonte: ${a.fonte === "api" ? "servidor 3480 (/api)" : "fita (recalculado)"} · pregão ${a.pregao || ""}`;
+  const nome = {"5m": "5 min", "15m": "15 min", "30m": "30 min", "1h": "1 hora"};
+  $("agr").innerHTML = ["5m", "15m", "30m", "1h"].map(k => {
+    const w = js[k];
+    if (!w) return `<div class="jan"><div class="t"><b>${nome[k]}</b><span class="sub">sem dado</span></div></div>`;
+    const tot = (w.compra || 0) + (w.venda || 0), pc = tot ? (w.compra / tot * 100) : 50;
+    const dirTxt = w.dir ? ` → ${lado(w.dir)}` : "";
+    const hist = w.casos ? `${w.casos} casos · 15 min ${pct(w.acerto15)} · 30 min ${pct(w.acerto30)}` : "sem histórico desta leitura";
+    const ver = w.veredito || "—", vc = /^COMPRA/.test(ver) ? "c" : /^VENDA/.test(ver) ? "v" : "";
+    return `<div class="jan ${w.vale ? "vale" : ""}"><div class="t"><b>${nome[k]}</b><span><b class="${vc}">${esc(ver)}</b>${esc(dirTxt)} ${w.vale ? '<span class="tag a">VALE</span>' : ""}${w.alerta ? ` <span class="alerta">${esc(w.alerta)}</span>` : ""}</span></div>` +
+      `<div class="bar" title="compradores ${w.compra} × vendedores ${w.venda}"><i class="bc" style="width:${pc.toFixed(1)}%"></i><i class="bv" style="width:${(100 - pc).toFixed(1)}%"></i></div>` +
+      `<div class="t sub num"><span>saldo ${sg(w.saldo_pct)}% · preço ${sg(w.var)} pts</span><span>lotes grandes ${w.grande_saldo_pct == null ? "—" : sg(w.grande_saldo_pct) + "%"} (${w.grande_pct_vol == null ? "—" : f1(w.grande_pct_vol) + "% do vol."})</span></div>` +
+      `<div class="sub">${esc(hist)}</div></div>`;
+  }).join("");
+}
+
+function macro(d) {
+  const m = d.macro;
+  if (!m) { $("mac").innerHTML = '<span class="sub">macro indisponível (servidor 3480 sem resposta)</span>'; $("mac-leit").innerHTML = ""; return; }
+  $("mac-hora").textContent = m.atualizado ? "Yahoo via 3480 · " + m.atualizado : "";
+  const it = (n, x, extra) => `<div>${n}<b>${x.px == null ? "—" : x.px}</b><span class="${cls(x.var_pct)}">${x.var_pct == null ? "" : sg(x.var_pct, 2) + "% dia"}</span>${extra || ""}</div>`;
+  $("mac").innerHTML =
+    it("DXY", m.dxy, m.dxy.var_1h_pct != null ? `<span class="${cls(m.dxy.var_1h_pct)}"> · ${sg(m.dxy.var_1h_pct, 3)}% 1 h</span>` : "") +
+    `<div>Juro 10 anos<b>${m.tnx.px == null ? "—" : f2(m.tnx.px) + "%"}</b><span class="${cls(m.tnx.bps)}">${m.tnx.bps == null ? "" : sg(m.tnx.bps) + " pb"}</span></div>` +
+    `<div>Juro 5 anos<b>${m.fvx.px == null ? "—" : f2(m.fvx.px) + "%"}</b><span class="${cls(m.fvx.bps)}">${m.fvx.bps == null ? "" : sg(m.fvx.bps) + " pb"}</span></div>` +
+    it("VIX", m.vix) + it("Prata", m.prata) + `<div>Ouro / prata<b>${m.ouro_prata == null ? "—" : f1(m.ouro_prata)}</b><span>${m.ouro && m.ouro.px ? "GC=F " + m.ouro.px : ""}</span></div>`;
+  $("mac-leit").innerHTML = (m.leitura || []).map(t => `<div>• ${esc(t)} <span class="tag">contexto</span></div>`).join("");
+}
+
+function regimeZg(d) {
+  const r = d.regime || {};
+  const A = r.A || (r.A_bruto ? r.A_bruto + " (STALE)" : "—");
+  const cor = x => x === "POSITIVO" || x === "ACIMA" ? "c" : x === "NEGATIVO" || x === "ABAIXO" ? "v" : "a";
+  $("rg-kv").innerHTML = [["A · sinal GEX 0DTE", `<span class="${cor(r.A)}">${esc(A)}</span> <span class="sub">${r.A_valor == null ? "" : f1(r.A_valor)}</span>`],
+    ["B · preço × zona ZG", `<span class="${cor(r.B)}">${esc(r.B || "—")}</span>`], ["Leitura", `<span class="${cor(r.leitura)}">${esc(r.leitura)}</span>`], ["Conflito", esc(r.motivo || "não")]]
+    .map(x => `<div>${x[0]}<b style="font-size:14px">${x[1]}</b></div>`).join("");
+  const nt = d.noturno || {}, rn = nt.regime || {};
+  $("rg-kv").innerHTML += `<div style="grid-column:1/-1">Regime N (níveis do fechamento das opções)<b style="font-size:13px">` +
+    (nt.ativo ? `<span class="${cor(rn.leitura)}">${esc(rn.leitura)}</span> · retrato ${esc(nt.retrato_brt)} · ZG ${f1(nt.zg)} · A ${esc(rn.A || "—")} · B ${esc(rn.B || "—")}${rn.motivo ? " · " + esc(rn.motivo) : ""}`
+      : esc(nt.opcoes_abertas ? "opções abertas: igual ao regime ao vivo" : (nt.motivo || "sem retrato"))) + `</b></div>`;
+  const z = d.zg || {};
+  $("zg-kv").innerHTML = [["ZG full", f1(z.zg)], ["Zona ± 0,04%", z.zona ? f1(z.zona[0]) + " – " + f1(z.zona[1]) : "—"],
+    ["Andou (5 leituras)", z.andou == null ? "—" : f1(z.andou) + " pts"], ["Estado", z.estavel == null ? "—" : z.estavel ? '<span class="c">estável</span>' : '<span class="a">instável</span>']]
+    .map(x => `<div>${x[0]}<b>${x[1]}</b></div>`).join("");
+  $("zg-leit").textContent = (z.leituras || []).map(l => `${l.brt} ${f1(l.zg)}`).join(" · ") + (z.zg_0dte != null ? ` · ZG 0DTE (referência) ${f1(z.zg_0dte)}` : "");
+  const a = d.amplitude;
+  if (!a) { $("amp").innerHTML = '<span class="sub">calculando amplitude…</span>'; return; }
+  const c = x => (x && x.n) ? `${f1(x.mediana)} <span class="sub">n ${x.n}</span>` : '<span class="sub">sem amostra</span>';
+  $("amp").innerHTML = `<table><thead><tr><th>Amplitude</th><th>30 min</th><th>60 min</th></tr></thead><tbody>` +
+    ["POSITIVO", "NEGATIVO", "CONFLITO", "todas"].map(k => `<tr><td class="${k === r.leitura ? "a" : ""}">${k === r.leitura ? "▶ " : ""}${k}</td><td>${c((a[k] || {})["30"])}</td><td>${c((a[k] || {})["60"])}</td></tr>`).join("") + "</tbody></table>";
+}
+
+function placar(d) {
+  const p = d.placar || {}, gm = p.gamma || {}, pr = p.preco || {};
+  const v = (q, tag, txt) => `<div class="voto"><div class="q">${q}<br>${tag}</div><div class="t">${txt}</div></div>`;
+  $("placar").innerHTML =
+    v("Gamma", gm.voto ? '<span class="tag c">1 voto</span>' : '<span class="tag">0</span>', esc(gm.texto)) +
+    v("Preço / fase", pr.voto ? '<span class="tag c">1 voto</span>' : '<span class="tag">0</span>', esc(pr.texto)) +
+    v("Agressão", '<span class="tag a">em medição</span>', esc((p.agressao || {}).texto)) +
+    v("Macro", '<span class="tag a">em medição</span>', esc((p.macro || {}).texto)) +
+    v("Journal", '<span class="tag">sem voto</span>', "só contexto (selos na escada)");
+}
+
+function resultados(d) {
+  const lin = (nome, h, t, real) => `<tr class="${real ? "real" : ""}"><td>${esc(nome)}</td><td>${(h || {}).n || 0}</td><td>${pct((h || {}).acerto)}</td><td>${f2((h || {}).R)}</td><td class="${cls((h || {}).usd)}">${usd((h || {}).usd)}</td>` +
+    `<td>${(t || {}).n || 0}</td><td>${pct((t || {}).acerto)}</td><td>${f2((t || {}).R)}</td><td class="${cls((t || {}).usd)}">${usd((t || {}).usd)}</td></tr>`;
+  const trR = d.mt5 || {}, rh = trR.hoje || {}, rt = trR.total || {};
+  const linReal = `<tr class="real"><td>REAL · MT5 (soma das 9)</td><td>${rh.n || 0}</td><td>${rh.n ? Math.round(100 * (rh.acertos || 0) / rh.n) + "%" : "—"}</td><td>—</td><td class="${cls(rh.usd)}">${usd(rh.usd)}</td>` +
+    `<td>${rt.n || 0}</td><td>${rt.n ? Math.round(100 * (rt.acertos || 0) / rt.n) + "%" : "—"}</td><td>—</td><td class="${cls(rt.usd)}">${usd(rt.usd)}</td></tr>`;
+  $("res").innerHTML = linReal + (d.variantes || []).map(c => lin(nomeV(c.variante), c.hoje, c.total)).join("");
+  $("res-ses").textContent = "sessão " + (d.sessao || "") + " · N = níveis do fechamento das opções";
+  const tr = [];
+  for (const c of d.variantes || []) for (const x of c.trades_hoje || []) tr.push([nomeV(c.variante), x]);
+  $("res-tr").innerHTML = tr.length ? tr.map(([v, x]) => `<tr><td class="${cls(x.lado)}">${esc(v)} · ${esc(x.tipo)} ${lado(x.lado)} ${x.qtd}</td><td>${f1(x.entrada)} <span class="sub">${esc((x.entrada_brt || "").slice(6, 11))}</span></td><td>${(x.pernas || []).map(p => `${esc(p.motivo)} ${f1(p.preco)}`).join(", ")}</td><td class="${cls(x.usd)}">${usd(x.usd)}</td><td>${f2(x.R)}</td></tr>`).join("")
+    : '<tr><td colspan="5" class="sub">nenhum trade das variantes nesta sessão</td></tr>';
+}
+
+function recolhivel(d) {
+  const nomes = {gamma_full: "Gamma full", gamma_0dte: "Gamma 0DTE", preco_fita: "Preço GC (fita)", api_3480: "Servidor 3480 (/api)", macro_yahoo_3480: "Macro (Yahoo via 3480)", ordem_exec: "exec\\ordem.txt (NT8, legado)", journal: "Journal FlowOne", agenda: "Agenda"};
+  $("fresc").innerHTML = Object.entries(d.frescor || {}).map(([k, f]) =>
+    `<tr><td>${nomes[k] || k}</td><td>${esc((f.carimbo_brt || "—").slice(0, 14))}</td><td>${idade(f.idade_s)}</td><td>${f.ok === true ? '<span class="tag c">ok</span>' : f.ok === false ? '<span class="tag v">STALE</span>' : '<span class="tag">contexto</span>'}</td></tr>`).join("");
+  $("agenda").textContent = (d.agenda || []).length ? "Notícias USD alta: " + d.agenda.map(a => `${a.titulo} ${a.brt}`).join(" · ") : "Sem notícia USD alta à frente na agenda salva.";
+  const jr = ((d.placar || {}).journal || {}).ultimos || [];
+  $("jr").innerHTML = jr.slice().reverse().map(e => `<div><span class="h">${esc(e.brt)}</span><span class="selo ${e.dir > 0 ? "c" : "v"}">${esc(e.tipo)} ${e.dir > 0 ? "▲" : "▼"}</span> ${f1(e.preco)} · tier ${esc(e.tier)}${e.diverge ? ' <span class="tag a">Direction do arquivo diverge</span>' : ""}</div>`).join("") || '<span class="sub">sem eventos</span>';
+  const sel = $("ev-sel"), vs = (d.variantes || []).map(c => c.variante);
+  if (sel.options.length !== vs.length) sel.innerHTML = vs.map(v => `<option value="${esc(v)}">${esc(nomeV(v))}</option>`).join("");
+  const c = (d.variantes || []).find(c => c.variante === sel.value) || (d.variantes || [])[0];
+  $("ev").innerHTML = c ? (c.eventos || []).slice().reverse().map(e => `<div><span class="h">${esc((e.brt || "").slice(6))}</span>${esc(e.txt)}</div>`).join("") : "";
+}
+
+function tradesDia(d) {
+  const m5 = d.mt5 || {}, h = m5.hoje || {}, tt = m5.total || {};
+  $("td-ses").textContent = "sessão " + (d.sessao || "") + " (18:00 NY → 18:00 NY)";
+  $("td-desde").textContent = m5.ativo ? "" : "· " + (m5.motivo || "EA do MT5 ainda não ligado");
+  const sim = (d.variantes || []).reduce((a, c) => { const x = c.hoje || {}; a.n += x.n || 0; a.usd += x.usd || 0; return a; }, {n: 0, usd: 0});
+  const nPos = Object.values(m5.posicoes || {}).reduce((a, l) => a + l.length, 0);
+  $("td-kv").innerHTML = [
+    ["Real hoje · soma das 9 (MT5)", m5.ativo ? `<span class="${cls(h.usd)}" style="font-size:20px">${usd(h.usd)}</span>` : '<span class="a">EA do MT5 ainda não ligado</span>'],
+    ["Real hoje: trades / acertos", m5.ativo ? `${h.n || 0} / ${h.acertos || 0}${h.abertos ? " · " + h.abertos + " aberto" : ""}` : "—"],
+    ["Real acumulado (MT5)", m5.ativo ? `<span class="${cls(tt.usd)}">${usd(tt.usd)}</span> · ${tt.n || 0} trades · ${tt.acertos || 0} acertos` : "—"],
+    ["Posições abertas no MT5", m5.ativo ? nPos : "—"],
+    ["Simulado hoje · soma das 9 (GC)", `<span class="${cls(sim.usd)}">${usd(sim.usd)}</span> · ${sim.n} trades`]]
+    .map(x => `<div>${x[0]}<b style="font-size:15px">${x[1]}</b></div>`).join("");
+  $("td-var").innerHTML = (d.variantes || []).map(c => {
+    const r = (m5.por_variante || {})[c.variante] || {}, rh = r.hoje || {}, rt = r.total || {}, sh = c.hoje || {}, st = c.total || {};
+    return `<tr><td>${esc(nomeV(c.variante))}</td><td>${m5.ativo ? `${rh.n || 0} · ${rh.acertos || 0} ac.` : "—"}</td><td class="${cls(rh.usd)}">${m5.ativo ? usd(rh.usd) : "—"}</td>` +
+      `<td>${sh.n || 0} · ${sh.ganhos || 0} ac.</td><td class="${cls(sh.usd)}">${usd(sh.usd)}</td><td class="${cls(rt.usd)}">${m5.ativo ? usd(rt.usd) : "—"}</td><td class="${cls(st.usd)}">${usd(st.usd)}</td></tr>`;
+  }).join("");
+  const ts = (m5.trades || []).slice().reverse();
+  $("td-real").innerHTML = ts.length ? ts.map(x => `<tr><td>${esc(nomeV(x.variante))}</td><td>${esc((x.entrada_brt || "").slice(0, 14))}</td><td class="${cls(x.lado)}">${lado(x.lado)}</td><td>${x.lotes}</td>` +
+      `<td>${f2(x.preco_mt5)}${x.preco_gc != null ? ` <span class="sub">(${f1(x.preco_gc)})</span>` : ""}</td><td>${f2(x.sl)}</td><td>${f2(x.tp)}</td>` +
+      `<td style="white-space:normal">${(x.saidas || []).length ? x.saidas.map(s => `${esc((s.brt || "").slice(6))} · ${esc(s.evento.replace("SAIDA_", ""))} · ${s.lotes} · ${f2(s.preco_mt5)}`).join("<br>") : ""}${x.fechado ? "" : ' <span class="tag a">aberto</span>'}${(x.eventos || []).length ? `<br><span class="sub">${esc(x.eventos.join(" · "))}</span>` : ""}</td>` +
+      `<td class="${cls(x.usd)}">${usd(x.usd)}</td></tr>`).join("")
+    : `<tr><td colspan="9" class="sub">${m5.ativo ? "nenhum trade no MT5 ainda" : "EA do MT5 ainda não ligado"}</td></tr>`;
+  $("td-sim").innerHTML = (d.variantes || []).map(c => {
+    const tl = (c.trades || []).slice().reverse(), to = c.total || {};
+    return `<details style="margin-top:6px"><summary style="cursor:pointer">${esc(nomeV(c.variante))} · ${to.n || 0} trades · ${f2(to.R)}R · <span class="${cls(to.usd)}">${usd(to.usd)}</span></summary>` +
+      `<div class="rol"><table><thead><tr><th>Entrada</th><th>Tipo</th><th>Lado</th><th>Entr.</th><th>Stop</th><th>TP1</th><th>TP2</th><th>Saídas</th><th>R</th><th>US$</th></tr></thead><tbody>` +
+      (tl.length ? tl.map(x => `<tr><td>${esc((x.entrada_brt || "").slice(0, 11))}</td><td>${esc(x.tipo)}</td><td class="${cls(x.lado)}">${lado(x.lado)} ${x.qtd}</td><td>${f1(x.entrada)}</td><td>${f1(x.stop_ini)}</td><td>${f1(x.tp1)}</td><td>${f1(x.tp2)}</td>` +
+        `<td style="white-space:normal">${(x.pernas || []).map(p => `${esc((p.brt || "").slice(6, 11))} ${esc(p.motivo)} ${p.qtd}@${f1(p.preco)}`).join("<br>")}</td><td>${f2(x.R)}</td><td class="${cls(x.usd)}">${usd(x.usd)}</td></tr>`).join("")
+        : '<tr><td colspan="10" class="sub">sem trades</td></tr>') + `</tbody></table></div></details>`;
+  }).join("");
+}
+
+
+
+/* ---------- mesas (19/11, presidente: "uma ABA Mesa Gold e outra Mesa Wall Street, para acompanhar os 2 operacionais") ---------- */
+let MESA = "gold";
+try { MESA = (location.hash === "#ws") ? "ws" : (localStorage.getItem("xp_mesa") || "gold"); } catch (e) {}
+function ligaMesa(m) {
+  MESA = m === "ws" ? "ws" : "gold";
+  for (const b of document.querySelectorAll("#mesas button")) b.classList.toggle("on", b.dataset.m === MESA);
+  $("mesa-gold").classList.toggle("on", MESA === "gold"); $("mesa-ws").classList.toggle("on", MESA === "ws");
+  $("tit-mesa").textContent = MESA === "ws" ? "Mesa Wall Street" : "Mesa Gold";
+  $("tit-sub").textContent = MESA === "ws" ? "ES/NQ · níveis do Jarvis · Sim101 → MT5" : "ouro · 9 regras · MT5 demo demo";
+  document.title = MESA === "ws" ? "XPRIME · Wall Street" : "XPRIME · Ouro";
+  try { localStorage.setItem("xp_mesa", MESA); } catch (e) {}
+  desenha();
+}
+$("mesas").addEventListener("click", ev => { const b = ev.target.closest("button"); if (b) ligaMesa(b.dataset.m); });
+
+function saudeWS() {
+  const p = (c, nome, val, tit) => `<span class="pill ${c}" title="${esc(tit || "")}"><i></i>${nome} <b>${val}</b></span>`;
+  if (!E) { $("saude").innerHTML = p("er", "Servidor ES/NQ", "fora"); return; }
+  const at = E.ativos || {}, fr = (at.ES || {}).fresco || (at.NQ || {}).fresco;
+  $("saude").innerHTML = p(E.pacote_idade_s != null && E.pacote_idade_s < 60 ? "ok" : "er", "Jarvis", idade(E.pacote_idade_s), "pacote do Jarvis gravado pela aba do Chrome") +
+    p(fr ? "ok" : "al", "Mapa", fr ? "fresco" : "velho", "estado do mapa do fornecedor e carimbo até 60 s") +
+    p(E.precos_idade_s != null && E.precos_idade_s < 15 ? "ok" : "er", "Executor NT8", E.precos_idade_s == null ? "desligado" : idade(E.precos_idade_s), "preços do MES/MNQ gravados pelo XpJarvisNiveisExec") +
+    p("ok", "Motor", (E.agora_brt || "").slice(6, 11), "servidor 3482");
+  if (D) $("relogio").innerHTML = `<b>${esc((D.agora_brt || "").slice(6, 11))}</b> BRT<br>NY ${esc(D.agora_ny || "")}`;
+}
+
+function mesaWS() {
+  if (!E) { $("ws-ativos").innerHTML = '<div class="card"><span class="sub">Servidor ES/NQ (porta 3482) sem resposta.</span></div>'; return; }
+  const at = E.ativos || {};
+  $("ws-ativos").innerHTML = ["ES", "NQ"].map(a => {
+    const x = at[a] || {}, rg = x.regime || "NEUTRO", p = x.pos, px = x.px;
+    const chip = p ? '<span class="chip em">em posição</span>' : !x.fresco ? '<span class="chip blq">Jarvis velho</span>' : (x.bloqueios || []).length ? '<span class="chip parada">fora da janela</span>' : rg === "NEUTRO" ? '<span class="chip sem">neutro</span>' : '<span class="chip arm">liberado</span>';
+    const dzg = px != null && x.zg != null ? px - x.zg : null;
+    const nv = (x.niveis || []).slice().sort((u, v) => v[0] - u[0]);
+    let lad = "", pxPos = false;
+    const linPx = () => `<div class="l px"><span>${f2(px)}</span><span class="nm" style="color:var(--ambar)">preço ${esc(x.micro || "")}</span></div>`;
+    for (const n of nv) {
+      if (!pxPos && px != null && px > n[0]) { lad += linPx(); pxPos = true; }
+      lad += `<div class="l ${/Zero Gamma/.test(n[1]) ? "zg" : ""}"><span>${f2(n[0])}</span><span class="nm">${esc(n[1])}${px != null ? " · " + sg(n[0] - px, 1) : ""}</span></div>`;
+    }
+    if (!pxPos && px != null) lad += linPx();
+    const posTxt = p ? `<div class="regra ${p.lado > 0 ? "compra" : "venda"} EM" style="margin-top:12px"><div class="r1"><span class="nm">${p.lado > 0 ? "COMPRADO" : "VENDIDO"} · ${esc(p.tipo)}</span><span class="chip em">${esc((p.entrada_brt || "").slice(6, 11))}</span></div>` +
+      `<div class="pos"><div>entrada<b>${f2(p.entrada)}</b></div><div>stop<b>${f2(p.stop)}</b></div><div>TP1<b>${f2(p.tp1)}</b></div><div>TP2<b>${f2(p.tp2)}</b></div></div>` +
+      `<div class="aberto">${px != null ? `<span class="${cls(p.lado * (px - p.entrada))}">${sg(p.lado * (px - p.entrada), 2)} pts</span> · ` : ""}${p.tp1_feito ? '<span class="tag c">TP1 feito · stop na entrada</span>' : "risco " + f2(p.risco) + " pts"}</div></div>` : "";
+    const hoje = (E.agora_brt || "").slice(0, 5);
+    const tr = (x.trades || []).filter(t => (t.entrada_brt || "").slice(0, 5) === hoje);
+    const rDia = tr.reduce((s, t) => s + (t.R || 0), 0);
+    return `<div class="ws-at reg-${esc(rg)}"><div class="cab"><b>${a} → ${esc(x.micro || "")}</b>${chip}</div>` +
+      `<div class="lin"><div>Preço<b>${px == null ? "—" : f2(px)}</b></div><div>Regime<b class="reg-${esc(rg)}">${esc(rg)}</b></div><div>Hoje<b class="${cls(rDia)}">${tr.length ? sg(rDia, 2) + "R" : "—"}</b></div></div>` +
+      `<div class="sub" style="margin-top:8px">${x.zg != null ? `Zero Gamma <b>${f2(x.zg)}</b>${dzg != null ? " · preço " + sg(dzg, 2) + " pts" : ""} · ` : ""}${x.motivo ? esc(x.motivo) + " · " : ""}Jarvis ${x.fresco ? "fresco" : "velho"} (${x.fonte_s == null ? "—" : idade(x.fonte_s)})${x.base != null ? " · base " + sg(x.base, 2) : ""}${(x.bloqueios || []).length ? " · " + esc(x.bloqueios.join(" · ")) : ""}</div>` +
+      posTxt + `<div class="escadinha">${lad || '<span class="sub">sem níveis (Jarvis velho ou sem preço)</span>'}</div></div>`;
+  }).join("");
+  const algumPos = ["ES", "NQ"].filter(a => (at[a] || {}).pos), fresco = ["ES", "NQ"].some(a => (at[a] || {}).fresco), semPx = ["ES", "NQ"].every(a => (at[a] || {}).px == null);
+  const blq = (at.ES || {}).bloqueios || [];
+  let k, ic, t;
+  if (algumPos.length) { k = "pos"; ic = "●"; t = `<b>Posicionado:</b> ${algumPos.map(a => a + " " + (at[a].pos.lado > 0 ? "compra" : "venda") + " @ " + f2(at[a].pos.entrada)).join(" · ")}`; }
+  else if (semPx) { k = "bloq"; ic = "‖"; t = `<b>Executor do NT8 desligado</b><span class="sub">ligue o XpJarvisNiveisExec no gráfico MES 12-26 de 1 min (Sim101) para o motor receber preço</span>`; }
+  else if (!fresco) { k = "bloq"; ic = "‖"; t = `<b>Dado do Jarvis velho</b><span class="sub">fora do pregão é normal; no pregão, confira o login e a aba de gravação no Chrome</span>`; }
+  else if (blq.length) { k = "bloq"; ic = "‖"; t = `<b>Fora da janela de entradas</b><span class="sub">${esc(blq.join(" · "))}</span>`; }
+  else { k = "livre"; ic = "✓"; t = `<b>Liberado · aguardando a vela M5 confirmar num nível</b><span class="sub">ES ${esc((at.ES || {}).regime || "—")} · NQ ${esc((at.NQ || {}).regime || "—")}</span>`; }
+  $("ws-agora").className = "agora " + k; $("ws-agora").innerHTML = `<div class="ic">${ic}</div><div class="tx">${t}</div>`;
+  const trs = [];
+  for (const a of ["ES", "NQ"]) for (const t of ((at[a] || {}).trades || [])) trs.push([a, t]);
+  trs.sort((u, v) => (v[1].t || 0) - (u[1].t || 0));
+  $("ws-trades").innerHTML = trs.length ? trs.slice(0, 20).map(([a, t]) => `<tr><td>${a}</td><td>${esc((t.entrada_brt || "").slice(0, 11))}</td><td>${esc(t.tipo)}</td><td class="${cls(t.lado)}">${lado(t.lado)}</td><td>${f2(t.entrada)}</td><td>${f2(t.stop_ini != null ? t.stop_ini : t.stop)}</td><td>${f2(t.tp1)} / ${f2(t.tp2)}</td><td>${esc(t.motivo || "")} ${esc((t.saida_brt || "").slice(6, 11))}</td><td class="${cls(t.R)}">${sg(t.R, 2)}</td></tr>`).join("")
+    : '<tr><td colspan="9" class="sub">nenhum trade ainda · o operacional começa no pregão de 20/11 (12:00 BRT)</td></tr>';
+  const evs = [];
+  for (const a of ["ES", "NQ"]) for (const e of ((at[a] || {}).eventos || [])) evs.push([a, e]);
+  evs.sort((u, v) => (v[1].brt || "").localeCompare(u[1].brt || ""));
+  $("ws-ev").innerHTML = evs.length ? evs.map(([a, e]) => `<div><span class="h">${esc((e.brt || "").slice(6))}</span><b>${a}</b> ${esc(e.txt)}</div>`).join("") : '<span class="sub">sem eventos ainda</span>';
+  $("ws-fontes").textContent = `pacote do Jarvis ${E.pacote_brt || "—"} · motor ${E.agora_brt || ""}`;
+  $("ws-robo").innerHTML = [["Executor NT8 (preços MES/MNQ)", E.precos_idade_s == null ? '<span class="v">desligado</span>' : `<span class="${E.precos_idade_s < 15 ? "c" : "v"}">${idade(E.precos_idade_s)}</span>`],
+    ["Pacote do Jarvis", `<span class="${E.pacote_idade_s != null && E.pacote_idade_s < 60 ? "c" : "v"}">${idade(E.pacote_idade_s)}</span>`],
+    ["Ordem ES", `<span style="font-size:11px">${esc((at.ES || {}).ordem || "—")}</span>`], ["Ordem NQ", `<span style="font-size:11px">${esc((at.NQ || {}).ordem || "—")}</span>`]]
+    .map(x => `<div>${x[0]}<b>${x[1]}</b></div>`).join("");
+}
+
+function pontosMesas() {
+  const d = D || {}, m5 = d.mt5 || {}, ps = Object.values(m5.posicoes || {}).some(l => l && l.length);
+  const fr = d.frescor || {};
+  $("dot-gold").className = "dot " + (ps ? "em" : (fr.preco_fita || {}).ok ? "ok" : "er");
+  const at = (E || {}).ativos || {}, wsPos = ["ES", "NQ"].some(a => (at[a] || {}).pos);
+  $("dot-ws").className = "dot " + (!E ? "er" : wsPos ? "em" : E.precos_idade_s != null && E.precos_idade_s < 15 ? "ok" : "");
+}
+
+function desenha() {
+  try { pontosMesas(); } catch (e) { console.error("pontos", e); }
+  if (MESA === "ws") { try { saudeWS(); mesaWS(); } catch (e) { console.error("ws", e); } return; }
+  const d = D; if (!d) return;
+  for (const fn of [cabecalho, heroi, agora, operacional, tradesDia, escada, melhor, v1card, agressao, macro, regimeZg, placar, resultados, recolhivel]) {
+    try { fn(d); } catch (e) { console.error(fn.name, e); }
+  }
+  const er = Object.entries(d.erros || {});
+  $("erro").style.display = er.length ? "block" : "none";
+  $("erro").textContent = er.map(([k, v]) => k + ": " + v).join(" · ");
+  $("rodape").textContent = `Atualizado ${d.agora_brt} (BRT) · regras: OPERACIONAL_OURO_V2.md`;
+}
+
+/* ---------------- gráfico de linha: preço × mapa do gamma (SVG puro) ---------------- */
+let S = null, GX = null, TF = "M5", EM = {modo: "auto", lo: null, hi: null}, GEO = null, PERFIL = "full";
+let OCULTOS = new Set(["londres", "ny"]);
+const TFS = ["M5", "M15", "M30", "H1", "H4"];
+try {
+  const v = localStorage.getItem("ouro_gr_tf"); if (TFS.includes(v)) TF = v;
+  const e = JSON.parse(localStorage.getItem("ouro_gr_escala") || "null"); if (e && e.modo) EM = e;
+  const o = JSON.parse(localStorage.getItem("ouro_gr_ocultos2") || "null"); if (Array.isArray(o)) OCULTOS = new Set(o);
+  const p = localStorage.getItem("ouro_gr_perfil"); if (["full", "zero", "one"].includes(p)) PERFIL = p;
+} catch (e) {}
+const salvaEsc = () => { try { localStorage.setItem("ouro_gr_escala", JSON.stringify(EM)); } catch (e) {} };
+const salvaOc = () => { try { localStorage.setItem("ouro_gr_ocultos2", JSON.stringify([...OCULTOS])); localStorage.setItem("ouro_gr_perfil", PERFIL); } catch (e) {} };
+// paleta fixa: preço = branco (única linha branca, uma cor só); ZG (flip) = âmbar; + = verde; − = vermelho/rosa; mistos = lilás; v1 = azul.
+// o GRUPO (vencimento) é dado pelo estilo: FULL linha cheia 2 px; 0DTE tracejada 1,5 px ("0D"); próximo vencimento pontilhada 1,5 px ("Px").
+const COR_PRECO = "#EEF1EE", COR_ZG = "#FFB35C", COR_POS = "#3fd17f", COR_NEG = "#ff5c7a", COR_V1 = "#58a6ff", COR_MIX = "#c792ea";
+const TIPOS = [{k: "zero_gamma", i: 2, r: "ZG", s: 0}, {k: "major_pos_vol", i: 3, r: "+Vol", s: 1}, {k: "major_neg_vol", i: 4, r: "−Vol", s: -1},
+               {k: "major_pos_oi", i: 5, r: "+OI", s: 1}, {k: "major_neg_oi", i: 6, r: "−OI", s: -1}];
+const GRUPOS = [{g: "full", nome: "FULL", pre: "", tr: "", larg: 2}, {g: "zero", nome: "0DTE", pre: "0D ", tr: "7 4", larg: 1.5},
+                {g: "one", nome: "Próx. venc.", pre: "Px ", tr: "1.5 3", larg: 1.5}];
+const GRK = Object.fromEntries(GRUPOS.map(g => [g.g, g]));
+const corTipo = s => s === 0 ? COR_ZG : s > 0 ? COR_POS : COR_NEG;
+const REGC = {P: "rgba(46,165,107,.08)", N: "rgba(229,83,75,.08)", C: "rgba(212,167,44,.06)"};
+const REGT = {P: "POSITIVO", N: "NEGATIVO", C: "CONFLITO"};
+const fmtT = (t, data) => new Date(t * 1000).toLocaleString("pt-BR", data ? {timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"}
+                                                                          : {timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit"});
+const vbr = v => v == null ? "—" : Number(v).toFixed(1).replace(".", ",");
+const gbr = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(Math.round(v));
+
+function legenda() {
+  const it = (k, html, tit) => `<span class="lg ${OCULTOS.has(k) ? "off" : ""}" data-k="${k}" title="${tit || "clique para mostrar/ocultar"}">${html}</span>`;
+  $("gr-leg").innerHTML =
+    `<span class="lg"><i style="border-color:${COR_PRECO};border-top-style:solid;border-top-width:2px"></i>preço GC</span>` +
+    `<span class="lg sub">grupo:</span>` +
+    it("g:full", `<i style="border-color:#c9d1d9;border-top-style:solid;border-top-width:2px"></i>FULL (decide)`) +
+    it("g:zero", `<i style="border-color:#c9d1d9;border-top-style:dashed"></i>0DTE "0D"`) +
+    it("g:one", `<i style="border-color:#c9d1d9;border-top-style:dotted"></i>próx. venc. "Px"`) +
+    `<span class="lg sub">tipo:</span>` +
+    it("t:zero_gamma", `<b style="color:${COR_ZG}">■</b> Zero Gamma (flip) + zona`) +
+    it("t:vol", `<b style="color:${COR_POS}">■</b>/<b style="color:${COR_NEG}">■</b> Major Vol (+/−)`) +
+    it("t:oi", `<b style="color:${COR_POS}">■</b>/<b style="color:${COR_NEG}">■</b> Major OI (+/−)`) +
+    it("perfil", `<b style="color:${COR_POS}">▬</b><b style="color:${COR_NEG}">▬</b> perfil top strikes`) +
+    it("sessao", `<i style="border-color:#aab4c0;border-top-style:dotted"></i>separador de sessão`) +
+    it("londres", `<i style="border-color:#5d6b7d;border-top-style:dotted"></i>Londres`) +
+    it("ny", `<i style="border-color:#5d6b7d;border-top-style:dotted"></i>NY 09:30`) +
+    it("marcas", `<b class="c">▲</b><b class="v">▼</b>× trades`) +
+    it("regime", `fundo regime`) +
+    `<span class="lg"><b style="color:${COR_MIX}">■</b> fundidos + e −</span>` +
+    `<span class="lg" style="flex-basis:100%;color:#f2cc60">O v2 decide só com o FULL; 0DTE e próximo vencimento são contexto. ◆ na pílula = major que também é top strike do perfil.</span>`;
+  for (const b of $("gr-perf").querySelectorAll("button")) b.className = b.dataset.p === PERFIL ? "on" : "";
+}
+$("gr-leg").addEventListener("click", ev => {
+  const el = ev.target.closest ? ev.target.closest("[data-k]") : null; if (!el) return;
+  const k = el.dataset.k; if (OCULTOS.has(k)) OCULTOS.delete(k); else OCULTOS.add(k);
+  salvaOc(); legenda(); grafico();
+});
+$("gr-perf").addEventListener("click", ev => {
+  const p = ((ev.target || {}).dataset || {}).p; if (!p) return;
+  PERFIL = p; OCULTOS.delete("perfil"); salvaOc(); legenda(); grafico();
+});
+function marcaBotoes() {
+  for (const b of $("gr-jan").querySelectorAll("button")) b.className = b.dataset.tf === TF ? "on" : "";
+  for (const b of $("gr-esc").querySelectorAll("button")) b.className = b.dataset.m === EM.modo ? "on" : "";
+  $("gr-modo").textContent = EM.modo === "manual" ? "manual (duplo clique na faixa de preços = Auto)" : "";
+}
+$("gr-jan").addEventListener("click", ev => {
+  const tf = ((ev.target || {}).dataset || {}).tf; if (!tf) return;
+  TF = tf; try { localStorage.setItem("ouro_gr_tf", tf); } catch (e) {}
+  marcaBotoes(); buscaSerie();
+});
+$("gr-esc").addEventListener("click", ev => {
+  const m = ((ev.target || {}).dataset || {}).m; if (!m) return;
+  EM = {modo: m, lo: null, hi: null}; salvaEsc(); marcaBotoes(); grafico();
+});
+marcaBotoes(); legenda();
+
+const tipoVisivel = t => !OCULTOS.has(t.k === "zero_gamma" ? "t:zero_gamma" : t.k.endsWith("_vol") ? "t:vol" : "t:oi");
+function v1Linhas() { return []; }      // v1 retirado do painel (19/11)
+// itens de um degrau [t_ini, t_fim, zg, +vol, −vol, +oi, −oi] de um grupo
+const itensSeg = (seg, g) => OCULTOS.has("g:" + g) ? [] : TIPOS.filter(tipoVisivel).filter(t => seg[t.i] != null).map(t => ({g, t, v: seg[t.i]}));
+// fusão igual à do v2 (a até 2,5 pt viram um, pela média)
+function funde(itens, fus) {
+  const out = [];
+  for (const x of itens.slice().sort((a, b) => a.v - b.v)) {
+    const u = out[out.length - 1];
+    if (u && x.v - u.v <= fus) { u.m.push(x); u.v = (u.v * (u.m.length - 1) + x.v) / u.m.length; } else out.push({m: [x], v: x.v});
+  }
+  for (const u of out) {
+    u.v = Math.round(u.v * 10) / 10;
+    u.id = u.m.map(x => x.g + ":" + x.t.k).sort().join("+");
+    u.zg = u.m.some(x => x.t.s === 0);
+    const ss = new Set(u.m.map(x => x.t.s));
+    u.cor = u.zg ? COR_ZG : ss.size === 1 ? corTipo([...ss][0]) : COR_MIX;
+    const temFull = u.m.some(x => x.g === "full"), temZero = u.m.some(x => x.g === "zero");
+    u.full = temFull;
+    u.tr = temFull ? (u.m.filter(x => x.g === "full").every(x => x.t.k.endsWith("_oi")) ? "7 4" : "") : temZero ? GRK.zero.tr : GRK.one.tr;
+    u.larg = temFull ? 2 : 1.5;
+    u.rot = u.m.map(x => GRK[x.g].pre + x.t.r).join(" · ");
+  }
+  return out;
+}
+// reamostra os degraus no tempo gráfico: em cada barra vale o nível vigente no fechamento dela; barra sem leitura fresca = sem nível
+function amostra(segs, t0, t1, passo) {
+  const out = []; let j = 0;
+  for (let t = t0; t < t1; t += passo) {
+    const tf = t + passo - 1;
+    while (j < segs.length && segs[j][1] < tf) j++;
+    const s = j < segs.length && segs[j][0] <= tf ? segs[j] : null;
+    if (!s) continue;
+    const u = out[out.length - 1], vals = s.slice(2);
+    if (u && u[1] === t && u.slice(2).join() === vals.join()) u[1] = t + passo;
+    else out.push([t, t + passo].concat(vals));
+  }
+  return out;
+}
+function limites(modo, bars, ult, ultimos, v1l) {
+  if (modo === "perto") return [ult - 40, ult + 40];
+  const ps = bars.map(b => b[1]);
+  let lo = Math.min(...ps), hi = Math.max(...ps);
+  for (const v of ultimos.concat(v1l.map(x => x[1]))) if (modo === "todos" || Math.abs(v - ult) <= 40) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  const pad = Math.max(2, (hi - lo) * 0.03);
+  lo -= pad; hi += pad; if (hi - lo < 10) { const m = (hi + lo) / 2; lo = m - 5; hi = m + 5; }
+  return [lo, hi];
+}
+
+function grafico() {
+  const svg = $("gr"), cx = $("gr-caixa");
+  if (!S || !S.barras || !S.barras.length) { svg.innerHTML = `<text x="12" y="22" fill="#9aa49f">sem barras da fita</text>`; GEO = null; return; }
+  const estreito = (cx.clientWidth || 600) < 500, ret = S.retrato_n, ctx = S.contexto || {zero: [], one: [], top: {}};
+  const W = cx.clientWidth || 600, H = cx.clientHeight || 300, ml = 6, mr = estreito ? 100 : 150, mt = 8, mb = 20, pw = W - ml - mr, ph = H - mt - mb;
+  const bars = S.barras, passo = S.passo_s || 300, fus = S.fusao || 2.5;
+  const segG = {full: S.segmentos || [], zero: ctx.zero || [], one: ctx.one || []};
+  const t0 = bars[0][0], t1 = Math.max(S.agora, bars[bars.length - 1][0] + passo);
+  const ult = (D && D.px) || bars[bars.length - 1][1];
+  const v1l = v1Linhas();
+  // níveis vigentes agora em cada grupo: último degrau fresco ou, com as opções fechadas, o retrato do fechamento (N)
+  const vig = {}; let usaN = false;
+  for (const gr of GRUPOS) {
+    const ss = segG[gr.g], u = ss.length ? ss[ss.length - 1] : null;
+    if (u && S.agora - u[1] < 120) vig[gr.g] = {seg: u, n: false, desde: u[1]};
+    else if (ret) {
+      const base = gr.g === "full" ? [ret.t_ini, ret.t_fim].concat(ret.valores) : u;
+      if (base) { vig[gr.g] = {seg: base, n: true, desde: gr.g === "full" ? ret.t_ini : u[1]}; usaN = true; }
+    }
+  }
+  const itensAtuais = GRUPOS.flatMap(gr => vig[gr.g] ? itensSeg(vig[gr.g].seg, gr.g) : []);
+  const atual = funde(itensAtuais, fus);
+  let lo, hi;
+  if (EM.modo === "manual" && EM.lo != null && EM.hi != null && EM.hi > EM.lo) { lo = EM.lo; hi = EM.hi; }
+  else [lo, hi] = limites(EM.modo, bars, ult, atual.filter(u => u.full).map(u => u.v), v1l);
+  const X = t => ml + (t - t0) / (t1 - t0) * pw, Y = v => mt + (hi - v) / (hi - lo) * ph;
+  const xs = t => Math.max(ml, Math.min(ml + pw, X(t)));
+  const fx = v => v.toFixed(1);
+  let s = `<defs><clipPath id="grc"><rect x="${ml}" y="${mt}" width="${pw}" height="${ph}"/></clipPath></defs>`;
+  s += `<rect x="${ml + pw}" y="0" width="${mr}" height="${H}" fill="rgba(255,255,255,.025)"/>`;
+  const tm = S.tempos || {marcas: [], fechado: []};
+  for (const [a, b] of tm.fechado) { const xa = xs(a), xb = xs(b); if (xb > xa) s += `<rect x="${fx(xa)}" y="${mt}" width="${fx(xb - xa)}" height="${ph}" fill="rgba(139,152,169,.08)"/>`; }
+  if (!OCULTOS.has("regime")) {
+    const rg = S.regime || [];
+    for (let i = 0; i < rg.length; i++) {
+      const a = xs(rg[i][0]), b = xs(i + 1 < rg.length ? rg[i + 1][0] : S.agora); if (b <= a) continue;
+      s += `<rect x="${fx(a)}" y="${mt}" width="${fx(b - a)}" height="${ph}" fill="${REGC[rg[i][1]] || "none"}"/>` +
+           `<rect x="${fx(a)}" y="${mt + ph - 4}" width="${fx(b - a)}" height="4" fill="${(REGC[rg[i][2]] || "none").replace(/\.\d+\)$/, ".5)")}"/>`;
+    }
+  }
+  const passoY = [0.5, 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find(p => (hi - lo) / p <= 7) || 1000;
+  for (let v = Math.ceil(lo / passoY) * passoY; v <= hi; v += passoY)
+    s += `<line x1="${ml}" x2="${ml + pw}" y1="${fx(Y(v))}" y2="${fx(Y(v))}" stroke="#1b2421"/><text x="${W - 3}" y="${fx(Y(v) + 3.5)}" fill="#5d6b66" text-anchor="end" font-size="9.5">${v.toFixed(passoY < 1 ? 1 : 0)}</text>`;
+  const span = t1 - t0, hstep = [900, 1800, 3600, 7200, 14400, 21600, 43200, 86400, 172800, 345600].find(p => span / p <= (estreito ? 4 : 7)) || 345600;
+  const off = 3 * 3600;
+  for (let t = Math.ceil((t0 - off) / hstep) * hstep + off; t <= t1; t += hstep)
+    s += `<text x="${fx(X(t))}" y="${H - 6}" fill="#9aa49f" text-anchor="middle">${hstep >= 86400 ? fmtT(t, true).slice(0, 5) : hstep >= 21600 ? fmtT(t, true) : fmtT(t)}</text>`;
+  const rotOutros = TF === "M5" || TF === "M15";
+  for (const m of tm.marcas) {
+    if (OCULTOS.has(m.tipo)) continue;
+    const x = X(m.t); if (x > ml + pw - 2) continue;
+    if (m.tipo === "sessao") {
+      s += `<line x1="${fx(x)}" x2="${fx(x)}" y1="${mt}" y2="${mt + ph}" stroke="#aab4c0" stroke-width="1" stroke-dasharray="1 3" opacity=".75"/>`;
+      if (x < ml + pw - 34) s += `<text x="${fx(x + 3)}" y="${mt + 9}" fill="#aab4c0" font-size="9.5">${esc(m.rotulo.replace("Sessão ", ""))}</text>`;
+    } else {
+      s += `<line x1="${fx(x)}" x2="${fx(x)}" y1="${mt}" y2="${mt + ph}" stroke="#5d6b7d" stroke-width="1" stroke-dasharray="1 5" opacity=".6"/>`;
+      if (rotOutros && x < ml + pw - 24) s += `<text x="${fx(x + 3)}" y="${mt + ph - 7}" fill="#5d6b7d" font-size="9">${m.tipo === "ny" ? "NY" : "Lon"}</text>`;
+    }
+  }
+  const tG = (S.segmentos || []).length ? S.segmentos[0][0] : (ret ? ret.t_ini : null);
+  if (tG == null || tG > t0 + span * 0.08) {
+    const xb = tG == null ? ml + pw : xs(tG);
+    if (xb - ml > 80) s += `<text x="${fx(ml + 6)}" y="${mt + ph - 12}" fill="#5d6b66" font-size="10">sem gamma gravado</text>`;
+  }
+  let g = `<g clip-path="url(#grc)">`;
+  // perfil dos top strikes (estilo perfil de volume), a partir da borda direita, semitransparente
+  const top = (ctx.top || {})[PERFIL];
+  const topItens = top && !OCULTOS.has("perfil") ? top.itens.filter(x => x[0] >= lo && x[0] <= hi) : [];
+  if (topItens.length) {
+    const mx = Math.max(...top.itens.map(x => Math.abs(x[1]))) || 1, maxL = pw * 0.38;
+    const ordem = top.itens.slice().sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 3).map(x => x[0]);
+    for (const [k, gv] of topItens) {
+      const L = Math.max(3, Math.abs(gv) / mx * maxL), y = Y(k), cor = gv >= 0 ? COR_POS : COR_NEG;
+      g += `<g><rect x="${fx(ml + pw - L)}" y="${fx(y - 3.5)}" width="${fx(L)}" height="7" fill="${cor}" opacity=".32"/><title>${esc(`top strike ${GRK[PERFIL].nome}: ${vbr(k)} · GEX ${gbr(gv)}`)}</title></g>`;
+      if (ordem.includes(k)) g += `<text x="${fx(ml + pw - L - 4)}" y="${fx(y + 3.5)}" fill="${cor}" text-anchor="end" font-size="10" opacity=".95">${vbr(k)} · ${gbr(gv)}</text>`;
+    }
+  }
+  // níveis em degrau (série suavizada como no v2; só leituras frescas); FULL fundido < 2,5 pt; 0DTE e próximo vencimento como contexto
+  const desenha = (us, a, b, op, trN) => {
+    let h = "";
+    for (const u of us) {
+      if (u.zg && u.full) { const m = u.v * S.zona_pct / 100; h += `<rect x="${fx(a)}" y="${fx(Y(u.v + m))}" width="${fx(b - a)}" height="${fx(Math.max(1.5, Y(u.v - m) - Y(u.v + m)))}" fill="rgba(245,166,35,${(.22 * op).toFixed(2)})"/>`; }
+      const tr = trN || u.tr;
+      h += `<line x1="${fx(a)}" x2="${fx(b)}" y1="${fx(Y(u.v))}" y2="${fx(Y(u.v))}" stroke="${u.cor}" stroke-width="${u.larg}" ${tr ? `stroke-dasharray="${tr}"` : ""} opacity="${op}"/>`;
+    }
+    return h;
+  };
+  for (const gr of GRUPOS.slice().reverse()) {        // contexto embaixo, FULL por cima
+    let antU = null, antFim = null;
+    for (const sg of amostra(segG[gr.g], t0, t1, passo)) {      // um valor por barra do tempo gráfico (o do fechamento da barra)
+      const a = xs(sg[0]), b = xs(sg[1]); if (b <= ml || a >= ml + pw) { antU = null; continue; }
+      const us = funde(itensSeg(sg, gr.g), gr.g === "full" ? fus : 0);
+      g += desenha(us, a, b, gr.g === "full" ? .95 : .75, "");
+      if (gr.g === "full" && antU && Math.abs(sg[0] - antFim) < 1) for (const u of us) { const p = antU.find(x => x.id === u.id); if (p && p.v !== u.v) g += `<line x1="${fx(a)}" x2="${fx(a)}" y1="${fx(Y(p.v))}" y2="${fx(Y(u.v))}" stroke="${u.cor}" stroke-width="1.2" opacity=".6"/>`; }
+      antU = us; antFim = sg[1];
+    }
+  }
+  // linha atual de cada nível estendida até a borda direita (fundida entre grupos); retrato N tracejado e mais leve
+  for (const u of atual) {
+    const vs = u.m.map(x => vig[x.g]), n = vs.every(v => v.n), desde = Math.max(...vs.map(v => v.desde));
+    g += desenha([u], xs(desde), ml + pw, n ? .7 : .95, n && u.full ? "3 3" : "");
+  }
+  for (const [nm, v] of v1l) g += `<line x1="${ml}" x2="${ml + pw}" y1="${fx(Y(v))}" y2="${fx(Y(v))}" stroke="${COR_V1}" stroke-dasharray="1 3" stroke-width="1.5"/><text x="${ml + 4}" y="${fx(Y(v) - 3)}" fill="${COR_V1}">${nm} ${vbr(v)}</text>`;
+  let dp = "";
+  for (let i = 0; i < bars.length; i++) dp += (i && bars[i][0] - bars[i - 1][0] <= 3 * passo ? " L" : " M") + fx(X(bars[i][0] + passo)) + "," + fx(Y(bars[i][1]));
+  g += `<path d="${dp}" fill="none" stroke="${COR_PRECO}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  if (!OCULTOS.has("marcas")) for (const k of S.marcadores || []) {
+    if (k.t < t0 || k.px == null) continue;
+    const x = X(k.t), y = Y(k.px), v1m = k.quem === "v1", st = v1m ? `stroke="${COR_V1}" stroke-width="1.6"` : `stroke="#0a0d0c" stroke-width="1"`;
+    let forma;
+    if (k.tipo === "saida") forma = `<path d="M${x - 5},${y - 5} L${x + 5},${y + 5} M${x - 5},${y + 5} L${x + 5},${y - 5}" stroke="${v1m ? COR_V1 : "#c9d1d9"}" stroke-width="2"/>`;
+    else if (k.lado > 0) forma = `<path d="M${x},${y - 7} L${x + 6},${y + 4} L${x - 6},${y + 4} Z" fill="${COR_POS}" ${st}/>`;
+    else forma = `<path d="M${x},${y + 7} L${x + 6},${y - 4} L${x - 6},${y - 4} Z" fill="${COR_NEG}" ${st}/>`;
+    g += `<g>${forma}<title>${esc(fmtT(k.t, true) + " · " + k.txt)}</title></g>`;
+  }
+  g += `</g>`;
+  s += g;
+  // pílulas no eixo direito: uma por linha (fundidos numa só), FULL cheia, contexto com contorno; nunca se sobrepõem (fio-guia)
+  const pilH = 15, pilW = mr - 6, xp = ml + pw + 5, maxCh = Math.floor((pilW - 10) / (estreito ? 5.6 : 6.1));
+  const yu = Y(ult), precoDentro = yu >= mt && yu <= mt + ph;
+  const topSet = topItens.map(x => x[0]);
+  const rot = atual.map(u => {
+    const n = u.m.every(x => vig[x.g].n) ? "N " : "";      // o horário do retrato vai no título do gráfico
+    const mk = topSet.some(k => Math.abs(k - u.v) <= 0.6) ? "◆" : "";
+    const val = vbr(u.v); let nome = u.rot;
+    if ((n + mk + nome + " " + val).length > maxCh) nome = u.m.length > 1 ? `${GRK[u.m[0].g].pre}${u.m[0].t.r} +${u.m.length - 1}` : nome;
+    if ((n + mk + nome + " " + val).length > maxCh) nome = nome.slice(0, Math.max(2, maxCh - val.length - n.length - mk.length - 2)) + "…";
+    return {v: u.v, txt: n + mk + nome + " " + val, tit: (n ? "retrato N · " : "") + u.rot + " " + val + (mk ? " · coincide com top strike" : ""), cor: u.cor, cheia: u.full};
+  });
+  const dentro = rot.filter(r => r.v >= lo && r.v <= hi).map(r => Object.assign(r, {y0: Y(r.v), y: Y(r.v)}));
+  const lista = dentro.concat(precoDentro ? [{y: yu, y0: yu, fixo: true}] : []).sort((a, b) => a.y0 - b.y0);
+  const passoP = pilH + 1, ymin = mt + pilH / 2, ymax = mt + ph - pilH / 2;
+  for (let i = 0; i < lista.length; i++) { lista[i].y = Math.max(lista[i].y0, i ? lista[i - 1].y + passoP : ymin); }
+  for (let i = lista.length - 1; i >= 0; i--) { const lim = i === lista.length - 1 ? ymax : lista[i + 1].y - passoP; if (lista[i].y > lim) lista[i].y = lim; }
+  const pilula = (y, r, borda) => {
+    const fundo = r.cheia ? r.cor : "#0a0d0c", txt = r.cheia ? "#0a0d0c" : r.cor;
+    return `<g><rect x="${xp}" y="${fx(y - pilH / 2)}" width="${pilW}" height="${pilH}" rx="7" fill="${fundo}" stroke="${borda || r.cor}" stroke-width="1.2"/>` +
+      `<text x="${xp + 6}" y="${fx(y + 3.6)}" fill="${txt}" font-weight="700" font-size="${estreito ? 9.5 : 10.5}">${esc(r.txt)}</text><title>${esc(r.tit || r.txt)}</title></g>`;
+  };
+  for (const r of lista) {
+    if (r.fixo) continue;
+    if (Math.abs(r.y - r.y0) > 0.5) s += `<path d="M${ml + pw - 4},${fx(r.y0)} L${ml + pw},${fx(r.y0)} L${xp},${fx(r.y)}" stroke="${r.cor}" stroke-width="1" fill="none" opacity=".9"/>`;
+    s += pilula(r.y, r);
+  }
+  const acima = rot.filter(r => r.v > hi).sort((a, b) => a.v - b.v), abaixo = rot.filter(r => r.v < lo).sort((a, b) => b.v - a.v);
+  acima.forEach((r, i) => s += `<text x="${ml + pw - 3}" y="${mt + 20 + i * 12}" fill="${r.cor}" text-anchor="end" font-weight="700">▲ ${esc(r.txt)}</text>`);
+  abaixo.forEach((r, i) => s += `<text x="${ml + pw - 3}" y="${mt + ph - 20 - i * 12}" fill="${r.cor}" text-anchor="end" font-weight="700">▼ ${esc(r.txt)}</text>`);
+  const xu = X(bars[bars.length - 1][0] + passo), rp = {txt: "GC " + vbr(ult), cor: COR_PRECO, cheia: true};
+  const fixo = lista.find(r => r.fixo);
+  if (precoDentro) s += `<circle cx="${fx(xu)}" cy="${fx(yu)}" r="3.5" fill="${COR_PRECO}"/>` + (Math.abs(fixo.y - yu) > 0.5 ? `<path d="M${ml + pw},${fx(yu)} L${xp},${fx(fixo.y)}" stroke="${COR_PRECO}" fill="none"/>` : "") + pilula(fixo.y, rp, "#0a0d0c");
+  else s += pilula(yu < mt ? ymin : ymax, Object.assign(rp, {txt: (yu < mt ? "▲ " : "▼ ") + rp.txt}), "#0a0d0c");
+  s += `<line id="gr-cruz" x1="0" x2="0" y1="${mt}" y2="${mt + ph}" stroke="#c9d1d9" stroke-dasharray="3 3" visibility="hidden"/>`;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = s;
+  GEO = {X, Y, t0, t1, ml, mr, mt, pw, ph, W, H, lo, hi, bars, segG, passo, fus};
+  $("gr-info").textContent = `${TF} · ${f1(lo)}–${f1(hi)}${usaN && ret ? " · níveis do retrato N " + ret.hm : ""}${top && !OCULTOS.has("perfil") ? " · perfil " + GRK[PERFIL].nome + " " + top.brt : ""}`;
+  $("gr-hist").textContent = `${S.n} barras ${TF}` + (S.faltou ? ` · histórico disponível desde ${S.historico_desde}` : "") + (S.gamma_desde ? ` · gamma gravado desde ${S.gamma_desde}` : " · sem gamma gravado na janela");
+  if (GX != null) dica(GX);
+}
+
+function dica(px) {
+  const G = GEO, box = $("gr-dica"); if (!G) return;
+  const x = Math.max(G.ml, Math.min(G.ml + G.pw, px));
+  const t = G.t0 + (x - G.ml) / G.pw * (G.t1 - G.t0);
+  let bi = null; for (const b of G.bars) { if (b[0] <= t) bi = b; else break; }
+  let rg = null; for (const r of S.regime || []) { if (r[0] <= t) rg = r; else break; }
+  const cz = document.getElementById("gr-cruz");
+  if (cz) { cz.setAttribute("x1", x); cz.setAttribute("x2", x); cz.setAttribute("visibility", "visible"); }
+  let h = `<b>${bi ? fmtT(bi[0], true) : fmtT(t, true)}</b> ${TF} · fech. <b>${bi ? vbr(bi[1]) : "—"}</b>`;
+  if (rg) h += `<br>regime <b class="${rg[1] === "P" ? "c" : rg[1] === "N" ? "v" : "a"}">${REGT[rg[1]]}</b> · N ${REGT[rg[2]]}`;
+  let algum = false;
+  for (const gr of GRUPOS) {
+    let sg = G.segG[gr.g].find(s => s[0] <= t && t <= s[1]), n = false;
+    if (!sg && gr.g === "full" && S.retrato_n && t >= S.retrato_n.t_ini) { sg = [0, 0].concat(S.retrato_n.valores); n = true; }
+    if (!sg) continue;
+    const us = funde(itensSeg(sg, gr.g), gr.g === "full" ? G.fus : 0); if (!us.length) continue;
+    algum = true;
+    h += `<br><span class="sub">${gr.nome}${n ? " (retrato N " + S.retrato_n.hm + ")" : ""}${gr.g === "full" ? "" : " · contexto"}</span>`;
+    for (const u of us.sort((a, b) => b.v - a.v)) h += `<br><span style="color:${u.cor}">${u.rot}</span> ${vbr(u.v)}${bi ? ` <span class="sub">(${(u.v - bi[1] > 0 ? "+" : "") + (u.v - bi[1]).toFixed(1)})</span>` : ""}`;
+  }
+  if (!algum) h += `<br><span class="sub">sem leitura de gamma fresca neste momento</span>`;
+  box.innerHTML = h; box.style.display = "block";
+  const cw = $("gr-caixa").clientWidth, bw = box.offsetWidth;
+  box.style.left = (x + 12 + bw > cw ? Math.max(4, x - 12 - bw) : x + 12) + "px"; box.style.top = "8px";
+}
+function escondeDica() { GX = null; $("gr-dica").style.display = "none"; const c = document.getElementById("gr-cruz"); if (c) c.setAttribute("visibility", "hidden"); }
+
+/* interação: escala de preço ajustável (eixo: esticar/encolher, roda, pinça, duplo clique = Auto; área: deslocar) */
+(function () {
+  const svg = $("gr"), ptrs = new Map();
+  let arr = null, pinca = null, ultToqueEixo = 0, raf = 0;
+  const loc = ev => { const r = svg.getBoundingClientRect(), k = GEO ? GEO.W / (r.width || 1) : 1; return {x: (ev.clientX - r.left) * k, y: (ev.clientY - r.top) * k}; };
+  const noEixo = p => GEO && p.x > GEO.ml + GEO.pw;
+  const redesenha = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; grafico(); }); };
+  const manual = (lo, hi) => { if (!(hi - lo > 0.5) || hi - lo > 5000) return; EM = {modo: "manual", lo, hi}; marcaBotoes(); redesenha(); };
+  const auto = () => { EM = {modo: "auto", lo: null, hi: null}; salvaEsc(); marcaBotoes(); grafico(); };
+  svg.addEventListener("pointerdown", ev => {
+    if (!GEO) return;
+    const p = loc(ev); ptrs.set(ev.pointerId, p);
+    try { svg.setPointerCapture(ev.pointerId); } catch (e) {}
+    if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()];
+      if (noEixo(a) && noEixo(b)) { pinca = {d0: Math.max(10, Math.abs(a.y - b.y)), lo: GEO.lo, hi: GEO.hi}; arr = null; return; }
+    }
+    if (noEixo(p) && ev.pointerType !== "mouse") {
+      const agora = Date.now(); if (agora - ultToqueEixo < 350) { ultToqueEixo = 0; auto(); return; } ultToqueEixo = agora;
+    }
+    arr = {zona: noEixo(p) ? "eixo" : "area", y0: p.y, lo: GEO.lo, hi: GEO.hi, mexeu: false};
+    if (arr.zona === "area") { GX = p.x; dica(GX); }
+  });
+  svg.addEventListener("pointermove", ev => {
+    if (!GEO) return;
+    const p = loc(ev);
+    if (ptrs.has(ev.pointerId)) ptrs.set(ev.pointerId, p);
+    if (pinca && ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()], d = Math.max(10, Math.abs(a.y - b.y)), f = pinca.d0 / d, m = (pinca.lo + pinca.hi) / 2, h = (pinca.hi - pinca.lo) / 2 * f;
+      manual(m - h, m + h); return;
+    }
+    if (arr) {
+      const dy = p.y - arr.y0;
+      if (Math.abs(dy) > 3) arr.mexeu = true;
+      if (!arr.mexeu) { if (arr.zona === "area") { GX = p.x; dica(GX); } return; }
+      if (arr.zona === "eixo") {
+        const f = Math.exp(dy * 0.01), m = (arr.lo + arr.hi) / 2, h = (arr.hi - arr.lo) / 2 * f;
+        manual(m - h, m + h);
+      } else {
+        const dpx = dy / GEO.ph * (arr.hi - arr.lo);
+        manual(arr.lo + dpx, arr.hi + dpx); escondeDica();
+      }
+      return;
+    }
+    if (ev.pointerType === "mouse") { if (noEixo(p)) escondeDica(); else { GX = p.x; dica(GX); } }
+  });
+  const solta = ev => {
+    ptrs.delete(ev.pointerId);
+    if (ptrs.size < 2) pinca = null;
+    if (EM.modo === "manual") salvaEsc();
+    arr = null;
+  };
+  svg.addEventListener("pointerup", solta); svg.addEventListener("pointercancel", solta);
+  svg.addEventListener("pointerleave", ev => { if (ev.pointerType === "mouse" && !arr) escondeDica(); });
+  svg.addEventListener("dblclick", ev => { if (noEixo(loc(ev))) auto(); });
+  svg.addEventListener("wheel", ev => {
+    if (!GEO) return;
+    const p = loc(ev); if (!noEixo(p)) return;
+    ev.preventDefault();
+    const f = Math.exp(ev.deltaY * 0.001), v = GEO.hi - (p.y - GEO.mt) / GEO.ph * (GEO.hi - GEO.lo);
+    manual(v - (v - GEO.lo) * f, v + (GEO.hi - v) * f); salvaEsc();
+  }, {passive: false});
+  window.addEventListener("resize", () => { try { grafico(); } catch (e) { console.error(e); } });
+})();
+
+/* ---------- versão publicada (GitHub Pages): dados criptografados, abertos com senha ---------- */
+const API = "https://api.github.com/repos/miguelmaianeto2-create/painel/contents/dados.json?ref=dados";
+let SNAP = null, CHAVES = null, SNAP_T = 0;
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function derivaChaves(senha, env) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({name: "PBKDF2", hash: "SHA-256", salt: b64(env.sal), iterations: env.it}, base, 512));
+  const aes = await crypto.subtle.importKey("raw", bits.slice(0, 32), {name: "AES-CBC"}, false, ["decrypt"]);
+  const mac = await crypto.subtle.importKey("raw", bits.slice(32), {name: "HMAC", hash: "SHA-256"}, false, ["verify"]);
+  return {aes, mac};
+}
+async function abre(env, senha) {
+  const k = await derivaChaves(senha, env);
+  const sal = b64(env.sal), iv = b64(env.iv), ct = b64(env.ct), msg = new Uint8Array(sal.length + iv.length + ct.length);
+  msg.set(sal, 0); msg.set(iv, sal.length); msg.set(ct, sal.length + iv.length);
+  if (!await crypto.subtle.verify("HMAC", k.mac, b64(env.mac), msg)) throw new Error("senha incorreta");
+  const gz = await crypto.subtle.decrypt({name: "AES-CBC", iv}, k.aes, ct);
+  const txt = await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+  return JSON.parse(txt);
+}
+async function baixaEnvelope() {
+  const r = await fetch(API, {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"});
+  if (r.status === 403 || r.status === 429) throw new Error("limite de consultas do GitHub atingido; tenta de novo em alguns minutos");
+  if (!r.ok) throw new Error("GitHub respondeu " + r.status);
+  return await r.json();
+}
+function senhaGuardada() { try { return localStorage.getItem("xp_painel_senha") || ""; } catch (e) { return ""; } }
+async function buscaSerie() {
+  const s = SNAP && SNAP.serie ? SNAP.serie[TF] : null;
+  if (s && s.barras) { S = s; grafico(); }
+}
+async function atualiza() {
+  const senha = senhaGuardada();
+  if (!senha) { mostraPortao(""); return; }
+  try {
+    const env = await baixaEnvelope();
+    if (env.t !== SNAP_T || !SNAP) { SNAP = await abre(env, senha); SNAP_T = env.t; }
+    D = SNAP.dados; E = SNAP.esnq || null;
+    buscaSerie(); desenha();
+    const atraso = Math.round(Date.now() / 1000 - SNAP.t);
+    $("pub-idade").textContent = "dados de " + new Date(SNAP.t * 1000).toLocaleTimeString("pt-BR", {timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit"}) + " BRT · " + (atraso < 120 ? atraso + " s" : Math.round(atraso / 60) + " min") + " atrás";
+    $("pub-idade").className = "pill " + (atraso < 240 ? "ok" : "er");
+    $("portao").style.display = "none";
+  } catch (e) {
+    if (/senha/.test(String(e))) { try { localStorage.removeItem("xp_painel_senha"); } catch (x) {} mostraPortao("Senha incorreta."); return; }
+    $("erro").style.display = "block"; $("erro").textContent = "Não consegui atualizar: " + e.message;
+  }
+}
+function mostraPortao(msg) { $("portao").style.display = "grid"; $("portao-msg").textContent = msg || ""; setTimeout(() => $("portao-senha").focus(), 50); }
+$("portao-form").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const s = $("portao-senha").value.trim(); if (!s) return;
+  $("portao-msg").textContent = "abrindo…";
+  try {
+    const env = await baixaEnvelope();
+    SNAP = await abre(env, s); SNAP_T = env.t;
+    if ($("portao-lembrar").checked) { try { localStorage.setItem("xp_painel_senha", s); } catch (x) {} }
+    else { try { sessionStorage.setItem("xp_tmp", "1"); } catch (x) {} window.__senhaSessao = s; }
+    $("portao").style.display = "none"; atualiza();
+  } catch (e) { $("portao-msg").textContent = /senha/.test(String(e)) ? "Senha incorreta." : String(e.message || e); }
+});
+// senha só da sessão (sem "lembrar")
+const _sg = senhaGuardada;
+senhaGuardada = function () { return window.__senhaSessao || _sg(); };
+$("ev-sel").addEventListener("change", desenha);
+ligaMesa(MESA);
+atualiza();
+setInterval(atualiza, 90000);     // GitHub: 60 consultas/hora sem login por endereço → a cada 90 s
+</script>
+<div id="portao" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,13,12,.96);place-items:center;padding:20px">
+  <form id="portao-form" style="width:min(380px,100%);background:var(--sup);border:1px solid var(--linha);border-radius:18px;padding:26px 24px;text-align:center">
+    <svg viewBox="0 0 540 120" style="height:42px;margin-bottom:14px" aria-label="XPRIME Trading"><g transform="translate(8,10)"><line x1="20" y1="20" x2="80" y2="80" stroke="#EEF1EE" stroke-width="15" stroke-linecap="square"/><line x1="20" y1="80" x2="66" y2="34" stroke="#111614" stroke-width="27"/><line x1="20" y1="80" x2="64" y2="36" stroke="#FFB35C" stroke-width="15" stroke-linecap="square"/><polygon points="56,14 86,14 86,44" fill="#FFB35C"/></g><text x="128" y="76" font-family="Sora,'Segoe UI',Arial,sans-serif" font-weight="700" font-size="62" letter-spacing="2" fill="#EEF1EE"><tspan fill="#FFB35C">X</tspan>PRIME</text><text x="132" y="104" font-family="'IBM Plex Mono',Consolas,monospace" font-size="17" letter-spacing="10.5" fill="#9aa49f">TRADING</text></svg>
+    <div style="font-weight:700;margin-bottom:4px">Painel das mesas</div>
+    <div class="sub" style="margin-bottom:16px">Acesso restrito · digite a senha</div>
+    <input id="portao-senha" type="password" autocomplete="current-password" placeholder="senha" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--linha2);background:var(--bg);color:var(--txt);font:15px var(--mono)">
+    <label class="sub" style="display:flex;gap:6px;align-items:center;justify-content:center;margin:10px 0"><input type="checkbox" id="portao-lembrar" checked> lembrar neste aparelho</label>
+    <button type="submit" style="width:100%;padding:11px;border:0;border-radius:10px;background:var(--ambar);color:#1a1206;font:700 14px var(--sans);cursor:pointer">Entrar</button>
+    <div id="portao-msg" class="sub" style="margin-top:10px;color:var(--neg-t)"></div>
+  </form>
+</div>
+</body>
+</html>
