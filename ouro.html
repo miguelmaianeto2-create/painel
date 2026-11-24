@@ -152,6 +152,10 @@ a{color:var(--ouro)}
       <div id="setups"></div>
     </div>
     <div class="card">
+      <div class="gr-cab" style="margin-bottom:6px"><div class="rot">Pontos do pregão</div><div class="esp"></div><span class="pill" id="pt-info"></span></div>
+      <div id="pontos"></div>
+    </div>
+    <div class="card">
       <div class="rot">Escada de níveis</div><div class="niv" id="niv"></div>
     </div>
     </div>
@@ -270,7 +274,7 @@ function desenha() {
   $("idade").innerHTML = `<i></i>dados de ${new Date(SNAP.t * 1000).toLocaleTimeString("pt-BR", {timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit"})} BRT · ${idade < 120 ? idade + " s" : Math.round(idade / 60) + " min"}`;
   $("idade").className = "pill " + (idade < 240 ? "ok" : "er");
   if (!t.dia) { $("resumo").textContent = "Sem termômetro agora: " + (t.erro || "sem dado"); return; }
-  for (const fn of [veredito, setups, relogio, indiceMetais, correlacionados, medidores, grafico, niveis, ladokv, contexto]) { try { fn(t, d); } catch (e) { console.error(fn.name, e); } }
+  for (const fn of [veredito, setups, relogio, pontos, indiceMetais, correlacionados, medidores, grafico, niveis, ladokv, contexto]) { try { fn(t, d); } catch (e) { console.error(fn.name, e); } }
 }
 
 function veredito(t) {
@@ -482,6 +486,29 @@ function indiceMetais(t) {
         <div style="color:var(--sub)">ouro ${M.ouro_rel != null ? (M.ouro_rel >= 0 ? "+" : "") + f2(M.ouro_rel) + " p.p." : "—"} contra o índice</div></div></div>
     ${gr}<div style="margin-top:8px">${barras}</div>`;
   $("imx-info").textContent = `${M.subindo} sobem · ${M.caindo} caem`;
+}
+
+function pontos(t) {
+  const P = t.pontos, px = (t.onde || {}).px;
+  if (!P || P.erro) { $("pontos").innerHTML = `<div class="tx">${es((P || {}).erro || "sem dados")}</div>`; return; }
+  const faixa = z => z.lo === z.hi ? f1(z.lo) : `${f1(z.lo)} – ${f1(z.hi)}`;
+  const linhas = (P.zonas || []).map(z => {
+    if (z.lado === "AQUI") return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0;font:700 12px var(--mono);color:var(--ouro)"><span style="flex:1;border-top:1px dashed var(--ouro)"></span>preço ${f1(px)} · dentro de ${faixa(z)}<span style="flex:1;border-top:1px dashed var(--ouro)"></span></div>`;
+    const cor = z.lado === "R" ? "var(--baixa)" : "var(--alta)";
+    const tags = (z.principal ? '<span class="prova" style="margin:0 0 0 6px;background:var(--ouro-f);color:var(--ouro);border-color:transparent">principal</span>' : "") +
+                 (z.virada ? '<span class="prova" style="margin:0 0 0 6px;background:rgba(180,140,255,.14);color:var(--roxo);border-color:transparent">virada</span>' : "");
+    const dist = px != null ? (z.lado === "R" ? z.lo - px : px - z.hi) : null;
+    return `<div style="display:grid;grid-template-columns:34px auto 1fr auto;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--linha);${z.principal || z.virada ? "" : "opacity:.85"}">
+      <b style="font:800 12.5px var(--mono);color:${cor}">${es(z.rot)}</b>
+      <span style="font:${z.principal || z.virada ? 800 : 600} 13px var(--mono);white-space:nowrap">${faixa(z)}</span>
+      <span style="font-size:11px;color:var(--sub);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${es((z.itens || []).join(" · "))}${tags}</span>
+      <span style="font:11px var(--mono);color:var(--fraco);white-space:nowrap">${dist != null ? (z.lado === "R" ? "+" : "−") + f1(dist) : ""}</span></div>`;
+  }).join("");
+  const cen = (P.cenarios || []).map((c, i) => `<div style="display:flex;gap:8px;font-size:12.5px;margin:4px 0"><b style="color:var(--ouro);font-family:var(--mono)">${i + 1}</b><span>${es(c)}</span></div>`).join("");
+  const av = (P.avisos || []).map(a => `<div style="font-size:12px;color:var(--baixa);margin:3px 0">⚠ ${es(a)}</div>`).join("");
+  $("pontos").innerHTML = linhas + (cen ? `<div class="rot" style="margin-top:12px">Cenários</div>${cen}` : "") + (av ? `<div style="margin-top:8px">${av}</div>` : "") +
+    `<div style="font-size:11px;color:var(--fraco);margin-top:8px">Zonas = níveis a até ${f1(P.lim)} pts (0,1 ATR) juntos · ${es(P.obs || "")}</div>`;
+  $("pt-info").textContent = P.faixa ? `faixa do dia ${f1(P.faixa[0])} – ${f1(P.faixa[1])}` : "";
 }
 
 function correlacionados(t) {
