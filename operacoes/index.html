@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#000000">
+<title>XPrime Operações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23000'/%3E%3Cline x1='20' y1='20' x2='80' y2='80' stroke='%23EEF1EE' stroke-width='15'/%3E%3Cline x1='20' y1='80' x2='66' y2='34' stroke='%23000' stroke-width='27'/%3E%3Cline x1='20' y1='80' x2='64' y2='36' stroke='%23FFB35C' stroke-width='15'/%3E%3Cpolygon points='56,14 86,14 86,44' fill='%23FFB35C'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#000;--card:#0d1110;--card-2:#121816;--sunk:#0a0d0c;--ink:#eef1ee;--ink-2:#a3aca7;--ink-3:#6b746f;--line:#1e2523;--line-2:#2a3330;
+--brand:#ffb35c;--pos:#4cc9a6;--neg:#f08d68;--display:"Sora",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 56px}
+.top{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:auto}.logo svg{width:32px;height:32px}
+.logo b{font:700 18px var(--display);letter-spacing:.04em;display:block;line-height:1.1}.logo b span{color:var(--brand)}
+.logo small{display:block;font:500 10px var(--mono);letter-spacing:.3em;color:var(--ink-3)}
+.chip{font:500 12px var(--mono);padding:4px 11px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2);background:none;cursor:pointer}
+.chip.on{color:#000;background:var(--brand);border-color:var(--brand)}
+h1{font:700 clamp(26px,4vw,40px)/1.1 var(--display);margin:28px 0 6px}.lede{color:var(--ink-2);margin:0 0 18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0 22px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi small{display:block;color:var(--ink-3);font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}.kpi b{font:600 20px var(--display)}
+.conta{margin:26px 0 8px;font:600 13px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brand)}
+.robo{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}
+.robo>summary{list-style:none;cursor:pointer;display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 14px}
+.robo>summary::-webkit-details-marker{display:none}.robo>summary h3{margin:0;font:600 16px var(--display);margin-right:auto}
+.tag{font:500 12px var(--mono);color:var(--ink-2)}
+.estr{border-top:1px solid var(--line);padding:8px 14px 12px}
+.estr h4{margin:6px 0 8px;font:600 13px var(--body);display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font:13px var(--mono);min-width:760px}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--ink-3);font-weight:500;font-size:11px;text-transform:uppercase}
+td:nth-child(-n+3),th:nth-child(-n+3){text-align:left}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.c{color:var(--pos)}.v{color:var(--neg)}.ab{color:var(--brand)}
+#porta{position:fixed;inset:0;display:none;place-items:center;background:#000;z-index:9}
+#porta form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;width:min(360px,92vw)}
+#porta input{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line-2);background:var(--sunk);color:var(--ink);font:15px var(--mono);margin:10px 0}
+#porta button{width:100%;padding:11px;border:0;border-radius:10px;background:var(--brand);color:#000;font:600 15px var(--display);cursor:pointer}
+#msg-senha{color:var(--neg);font-size:13px;min-height:18px}.rod{color:var(--ink-3);font-size:12px;margin-top:24px}
+</style>
+</head><body>
+<div id="porta"><form id="f-senha"><b style="font:700 18px var(--display)">XPRIME · Operações</b>
+<div style="color:var(--ink-2);font-size:13px">Use a senha do painel de sinais</div>
+<input id="senha" type="password" autocomplete="current-password" autofocus><div id="msg-senha"></div><button>Entrar</button></form></div>
+<div class="top"><div class="top-in"><a class="logo" href="#" aria-label="XPrime Trading"><svg><use href="#simb"/></svg><span><b><span>X</span>PRIME</b><small>TRADING</small></span></a><span class="chip" id="estado">carregando…</span><span id="dias"></span></div></div>
+<div class="wrap">
+<h1>Todas as operações</h1>
+<p class="lede">Contas demo 83132811 e 83132559 · por conta, robô e estratégia · horários de Brasília · resultados em US$ líquidos.</p>
+<div class="kpis" id="kpis"></div><div id="lista"></div><div class="rod" id="rodape"></div></div>
+<script>
+const API = "https://api.github.com/repos/miguelmaianeto2-create/painel/contents/operacoes.json?ref=sinais";
+const ARQ = new URLSearchParams(location.search).get("arquivo");
+const $ = id => document.getElementById(id);
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+let CHAVE = null, LIVRO = null, DIA = "todos";
+async function deriva(senha, env) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({name: "PBKDF2", hash: "SHA-256", salt: b64(env.sal), iterations: env.it}, base, 512));
+  return {sal: env.sal, aes: await crypto.subtle.importKey("raw", bits.slice(0, 32), {name: "AES-CBC"}, false, ["decrypt"]),
+          mac: await crypto.subtle.importKey("raw", bits.slice(32), {name: "HMAC", hash: "SHA-256"}, false, ["verify"])};
+}
+async function abre(env, senha) {
+  if (!CHAVE || CHAVE.sal !== env.sal) CHAVE = await deriva(senha, env);
+  const sal = b64(env.sal), iv = b64(env.iv), ct = b64(env.ct);
+  const msg = new Uint8Array(sal.length + iv.length + ct.length); msg.set(sal); msg.set(iv, sal.length); msg.set(ct, sal.length + iv.length);
+  if (!await crypto.subtle.verify("HMAC", CHAVE.mac, b64(env.mac), msg)) throw new Error("Senha incorreta.");
+  const gz = await crypto.subtle.decrypt({name: "AES-CBC", iv}, CHAVE.aes, ct);
+  return JSON.parse(await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream("gzip"))).text());
+}
+
+async function baixa() {
+  const r = ARQ ? await fetch(ARQ, {cache: "no-store"}) : await fetch(API, {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"});
+  if (!r.ok) throw new Error("Dados indisponíveis no momento (" + r.status + ")."); return r.json();
+}
+let SENHA = ""; try { SENHA = sessionStorage.getItem("xp_sinais") || ""; } catch (e) {}
+async function ciclo(primeira) {
+  try {
+    const env = await baixa(); LIVRO = env.ct ? await abre(env, SENHA) : env;
+    if (primeira) { $("porta").style.display = "none"; try { sessionStorage.setItem("xp_sinais", SENHA); } catch (e) {} }
+    $("estado").textContent = "atualizado " + new Date(LIVRO.gerado_utc).toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
+    desenha(); return true;
+  } catch (e) {
+    if (primeira) { $("msg-senha").textContent = e.message; CHAVE = null; $("porta").style.display = "grid"; } else $("estado").textContent = "sem atualização";
+    return false;
+  }
+}
+$("f-senha").addEventListener("submit", async ev => { ev.preventDefault(); SENHA = $("senha").value; $("msg-senha").textContent = "";
+  if (await ciclo(true)) setInterval(() => ciclo(false), 60000); });
+if (SENHA) ciclo(true).then(ok => ok && setInterval(() => ciclo(false), 60000)); else $("porta").style.display = "grid";
+
+const nf = (x, d = 2) => x == null ? "—" : x.toLocaleString("pt-BR", {minimumFractionDigits: d, maximumFractionDigits: d});
+const sg = x => x == null ? "—" : (x > 0 ? "+" : x < 0 ? "−" : "") + nf(Math.abs(x));
+const cl = x => x > 0 ? "pos" : x < 0 ? "neg" : "";
+const dBR = d => d ? d.slice(8, 10) + "/" + d.slice(5, 7) : "—";
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
+function res(ops) {
+  const f = ops.filter(o => o.status === "fechado"), ab = ops.filter(o => o.status === "aberto");
+  return {n: ops.length, f: f.length, g: f.filter(o => o.usd > 0).length, usd: f.reduce((a, o) => a + o.usd, 0),
+          nab: ab.length, ab: ab.reduce((a, o) => a + (o.usd_aberto || 0), 0)};
+}
+function grupo(arr, k) { const m = new Map(); arr.forEach(o => { if (!m.has(o[k])) m.set(o[k], []); m.get(o[k]).push(o); }); return m; }
+function linha(o) {
+  const ab = o.status === "aberto", saida = o.hora_out ? (o.dia_saida && o.dia_saida !== o.dia ? dBR(o.dia_saida) + " " : "") + o.hora_out : "—";
+  return `<tr><td>${dBR(o.dia)}</td><td>${esc(o.ativo)}</td><td class="${o.lado === "compra" ? "c" : "v"}">${o.lado === "compra" ? "▲ compra" : "▼ venda"}</td>
+<td>${o.hora_in || "—"}</td><td>${nf(o.entrada)}</td><td>${saida}</td><td>${nf(o.saida)}</td>
+<td>${ab ? '<span class="ab">aberta</span>' : esc(o.motivo || "—")}</td><td>${nf(o.lotes)}${o.pernas > 1 ? " · " + o.pernas + " pernas" : ""}</td>
+<td class="${cl(ab ? o.usd_aberto : o.usd)}">${ab ? sg(o.usd_aberto) + " *" : sg(o.usd)}</td></tr>`;
+}
+function desenha() {
+  const todos = LIVRO.operacoes, dias = [...new Set(todos.map(o => o.dia).filter(Boolean))].sort();
+  $("dias").innerHTML = ["todos", ...dias].map(d => `<button class="chip ${d === DIA ? "on" : ""}" data-d="${d}">${d === "todos" ? "Tudo" : dBR(d)}</button>`).join(" ");
+  $("dias").querySelectorAll("button").forEach(b => b.onclick = () => { DIA = b.dataset.d; desenha(); });
+  const ops = todos.filter(o => DIA === "todos" || o.dia === DIA), r = res(ops);
+  $("kpis").innerHTML = [["Operações", r.n], ["Fechadas", r.f], ["Com ganho", r.f ? r.g + " (" + Math.round(100 * r.g / r.f) + "%)" : "—"],
+    ["Resultado fechado", `<span class="${cl(r.usd)}">${sg(r.usd)}</span>`], ["Em aberto", r.nab ? `${r.nab} · <span class="${cl(r.ab)}">${sg(r.ab)}</span>` : "0"]]
+    .map(([a, b]) => `<div class="kpi"><small>${a}</small><b>${b}</b></div>`).join("");
+  let h = "";
+  for (const c of LIVRO.contas) {
+    const oc = ops.filter(o => o.conta === c.conta); if (!oc.length) continue; const rc = res(oc);
+    h += `<div class="conta">${esc(c.nome)} · ${rc.n} operações · <span class="${cl(rc.usd)}">${sg(rc.usd)}</span></div>`;
+    for (const [robo, orb] of grupo(oc, "robo")) {
+      const rr = res(orb);
+      h += `<details class="robo" open><summary><h3>${esc(robo)}</h3><span class="tag">${rr.n} op · ${rr.g}/${rr.f} com ganho</span>
+<span class="tag ${cl(rr.usd)}">${sg(rr.usd)}</span>${rr.nab ? `<span class="tag ab">${rr.nab} aberta(s) ${sg(rr.ab)}</span>` : ""}</summary>`;
+      for (const [es, oe] of grupo(orb, "estrategia")) {
+        const re = res(oe);
+        h += `<div class="estr"><h4>${esc(es)} <span class="tag">${re.n} op · ${re.g}/${re.f} com ganho</span><span class="tag ${cl(re.usd)}">${sg(re.usd)}</span></h4>
+<div class="tw"><table><tr><th>Dia</th><th>Ativo</th><th>Lado</th><th>Entrada</th><th>Preço</th><th>Saída</th><th>Preço</th><th>Motivo</th><th>Lotes</th><th>US$</th></tr>
+${oe.map(linha).join("")}</table></div></div>`;
+      }
+      h += `</details>`;
+    }
+  }
+  $("lista").innerHTML = h || '<p class="lede">Sem operações no período.</p>';
+  $("rodape").textContent = "* aberta: resultado flutuante. Cartões: as pernas A e B do mesmo cartão aparecem juntas. Estratégia dos cartões = tipo do cartão · ativo. Atualiza a cada 60 s.";
+}
+</script></body></html>
