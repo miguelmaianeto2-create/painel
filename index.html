@@ -1234,8 +1234,15 @@ async function abre(env, senha) {
 }
 async function baixaEnvelope() {
   // 24/11: lê pelo raw.githubusercontent (sem o limite de 60 consultas/hora da API); a API fica só de reserva
+  // o raw pode vir com até 5 min de cache; se vier com mais de 2 min, tenta a API no máximo 1 vez a cada 2 min (≤ 30/h)
   const RAW = "https://raw.githubusercontent.com/miguelmaianeto2-create/painel/dados/dados.json?t=" + Date.now();
-  try { const r0 = await fetch(RAW, {cache: "no-store"}); if (r0.ok) return await r0.json(); } catch (e) {}
+  let viaRaw = null;
+  try { const r0 = await fetch(RAW, {cache: "no-store"}); if (r0.ok) viaRaw = await r0.json(); } catch (e) {}
+  if (viaRaw && Date.now() / 1000 - viaRaw.t < 120) return viaRaw;
+  if (viaRaw && Date.now() - (window.__ultApi || 0) < 120000) return viaRaw;
+  window.__ultApi = Date.now();
+  try { const ra = await fetch(API, {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"}); if (ra.ok) { const j = await ra.json(); if (!viaRaw || j.t >= viaRaw.t) return j; } } catch (e) {}
+  if (viaRaw) return viaRaw;
     const r = await fetch(API, {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"});
   if (r.status === 403 || r.status === 429) throw new Error("limite de consultas do GitHub atingido; tenta de novo em alguns minutos");
   if (!r.ok) throw new Error("GitHub respondeu " + r.status);
