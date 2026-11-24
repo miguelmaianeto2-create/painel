@@ -44,6 +44,17 @@ header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12p
 .selo{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.6px}
 .selo.c{background:var(--alta-f);color:var(--alta)}.selo.d{background:var(--baixa-f);color:var(--baixa)}.selo.n{background:var(--sup2);color:var(--sub)}
 
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.rel-l{display:grid;grid-template-columns:64px 1fr 96px;gap:8px;align-items:center;font-size:11.5px;margin:3px 0}
+.rel-l b{font:700 11.5px var(--mono);white-space:nowrap}
+.rel-t{position:relative;height:12px;border-radius:4px;background:var(--sup2)}
+.rel-t i{position:absolute;top:0;bottom:0;border-radius:4px}
+.rel-st{text-align:right;font:11px var(--mono);white-space:nowrap}
+.rel-agora{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ouro);box-shadow:0 0 0 2px rgba(242,193,78,.2)}
+.rel-ses{position:relative;height:20px;border-radius:6px;overflow:hidden;background:var(--sup2)}
+.rel-ses span{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--sub);border-right:1px solid var(--bg);overflow:hidden;white-space:nowrap}
+.rel-hr{position:relative;height:14px;font:10px var(--mono);color:var(--fraco)}
+.rel-hr span{position:absolute;transform:translateX(-50%)}
 /* gauges */
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
 @media(max-width:900px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -102,6 +113,7 @@ a{color:var(--ouro)}
 
   <!-- VEREDITO -->
   <section class="ver">
+    <div class="col">
     <div class="card hero">
       <div class="rot">Ouro · GC futuro</div>
       <div class="px" id="px">—</div>
@@ -115,8 +127,18 @@ a{color:var(--ouro)}
       <div class="resumo" id="resumo">carregando…</div>
     </div>
     <div class="card">
+      <div class="gr-cab" style="margin-bottom:6px"><div class="rot">Relógio do dia · horário de Brasília</div><div class="esp"></div><span class="pill" id="rel-info"></span></div>
+      <div id="relogio"></div>
+    </div>
+    </div>
+    <div class="col">
+    <div class="card">
       <div class="rot">Setups</div>
       <div id="setups"></div>
+    </div>
+    <div class="card">
+      <div class="rot">Escada de níveis</div><div class="niv" id="niv"></div>
+    </div>
     </div>
   </section>
 
@@ -150,9 +172,9 @@ a{color:var(--ouro)}
 
   <!-- NÍVEIS + CONTEXTO -->
   <section class="duas">
-    <div class="card"><div class="rot">Níveis em volta do preço</div><div class="niv" id="niv"></div></div>
     <div class="card"><div class="rot">Lado do dia · como foi medido</div><div class="kv" id="ladokv"></div>
-      <div class="rot" style="margin-top:14px">Agenda</div><div class="kv" id="agenda"></div></div>
+      </div>
+    <div class="card"><div class="rot">Agenda</div><div class="kv" id="agenda"></div></div>
   </section>
   <section class="ctx">
     <div class="card"><div class="rot">Macro <span class="prova">contexto</span></div><div class="kv" id="macro"></div></div>
@@ -233,7 +255,7 @@ function desenha() {
   $("idade").innerHTML = `<i></i>dados de ${new Date(SNAP.t * 1000).toLocaleTimeString("pt-BR", {timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit"})} BRT · ${idade < 120 ? idade + " s" : Math.round(idade / 60) + " min"}`;
   $("idade").className = "pill " + (idade < 240 ? "ok" : "er");
   if (!t.dia) { $("resumo").textContent = "Sem termômetro agora: " + (t.erro || "sem dado"); return; }
-  for (const fn of [veredito, setups, medidores, grafico, niveis, ladokv, contexto]) { try { fn(t, d); } catch (e) { console.error(fn.name, e); } }
+  for (const fn of [veredito, setups, relogio, medidores, grafico, niveis, ladokv, contexto]) { try { fn(t, d); } catch (e) { console.error(fn.name, e); } }
 }
 
 function veredito(t) {
@@ -375,6 +397,38 @@ function grafico(t) {
   $("gr-info").className = "pill " + (G.velho ? "er" : G.idade_min != null ? "ok" : "");
 }
 
+function relogio(t, d) {
+  const R = t.relogio; if (!R || R.erro) { $("relogio").innerHTML = `<div class="tx">${es((R || {}).erro || "sem relógio")}</div>`; return; }
+  const agora = Math.floor(Date.now() / 1000), tot = R.fim - R.ini, pc = ts => Math.max(0, Math.min(100, (ts - R.ini) / tot * 100));
+  const hh = ts => new Date(ts * 1000).toLocaleTimeString("pt-BR", {timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit"});
+  const pa = pc(agora), dentro = agora >= R.ini && agora <= R.fim;
+  const linhaAgora = dentro ? `<div class="rel-agora" style="left:${pa}%"></div>` : "";
+  const setups = Object.fromEntries((t.setups || []).map(s => [s.nome, s]));
+  // notícias da agenda (BRT "dd/mm HH:MM") dentro do pregão
+  const ano = new Date().getFullYear();
+  const noticias = (d.agenda || []).map(a => { const m = /(\d{2})\/(\d{2}) (\d{2}):(\d{2})/.exec(a.brt || ""); if (!m) return null;
+    const ts = Date.UTC(ano, +m[2] - 1, +m[1], +m[3] + 3, +m[4]) / 1000; return {ts, titulo: a.titulo}; }).filter(n => n && n.ts >= R.ini && n.ts <= R.fim);
+  let h = `<div class="rel-l"><b>Pregão</b><div class="rel-ses">${(R.sessoes || []).map(s => `<span style="left:${pc(s.ini)}%;width:${pc(s.fim) - pc(s.ini)}%">${es(s.nome)}</span>`).join("")}${noticias.map(n => `<i title="${es(n.titulo)}" style="position:absolute;left:${pc(n.ts)}%;top:0;bottom:0;width:2px;background:var(--baixa)"></i>`).join("")}${linhaAgora}</div><span class="rel-st" style="color:var(--sub)">${dentro ? "agora " + hh(agora) : "fora do pregão"}</span></div>`;
+  for (const j of R.janelas || []) {
+    const s = setups[j.nome] || {}, feito = s.entrada != null || /ALVO|STOP|FALHOU|ENCERRADO/.test(s.estado || "");
+    let st, cor;
+    if (j.aplica === false) { st = "não vale hoje"; cor = "var(--fraco)"; }
+    else if (s.estado === "ARMADO") { st = "em posição"; cor = "var(--ouro)"; }
+    else if (feito && s.usd != null) { st = (s.usd >= 0 ? "+" : "−") + "US$ " + f2(Math.abs(s.usd)); cor = s.usd >= 0 ? "var(--alta)" : "var(--baixa)"; }
+    else if (j.evento) { st = "a qualquer hora"; cor = "var(--sub)"; }
+    else if (agora < j.ini) { const m = Math.round((j.ini - agora) / 60); st = "em " + (m >= 60 ? Math.floor(m / 60) + "h" + String(m % 60).padStart(2, "0") : m + " min"); cor = "var(--txt)"; }
+    else if (agora <= j.fim) { st = "aberta agora"; cor = "var(--alta)"; }
+    else { st = "encerrada"; cor = "var(--fraco)"; }
+    const fundo = j.aplica === false ? "var(--linha2)" : j.evento ? "repeating-linear-gradient(90deg,rgba(242,193,78,.35) 0 6px,transparent 6px 10px)" : (agora >= j.ini && agora <= j.fim ? "var(--alta)" : "rgba(242,193,78,.55)");
+    h += `<div class="rel-l"><b>${es(j.nome.replace("Setup ", "S"))}</b><div class="rel-t"><i style="left:${pc(j.ini)}%;width:${Math.max(.8, pc(j.fim) - pc(j.ini))}%;background:${fundo}"></i>${linhaAgora}</div><span class="rel-st" style="color:${cor}">${st}</span></div>`;
+  }
+  const ticks = []; for (let ts = R.ini; ts <= R.fim; ts += 3 * 3600) ticks.push(ts);
+  h += `<div class="rel-l"><span></span><div class="rel-hr">${ticks.map(ts => `<span style="left:${pc(ts)}%">${hh(ts)}</span>`).join("")}</div><span></span></div>`;
+  $("relogio").innerHTML = h;
+  const prox = noticias.filter(n => n.ts > agora).sort((a, b) => a.ts - b.ts)[0];
+  $("rel-info").textContent = prox ? `notícia ${hh(prox.ts)} · ${prox.titulo}` : "sem notícia forte no pregão";
+}
+
 function niveis(t) {
   const G = t.gv || {}, O = t.onde || {}, px = O.px, todos = [];
   const add = (p, nome, cor) => { if (p != null) todos.push({p, nome, cor}); };
@@ -383,7 +437,7 @@ function niveis(t) {
   for (const n of G.niveis || []) if (/^G\d+$/.test(n.id) && !todos.some(x => Math.abs(x.p - n.preco) < .5)) add(n.preco, n.nome, "var(--fraco)");
   const acima = todos.filter(x => x.p > px).sort((a, b) => a.p - b.p).slice(0, 5).reverse();
   const abaixo = todos.filter(x => x.p <= px).sort((a, b) => b.p - a.p).slice(0, 5);
-  const linha = x => `<span style="width:8px;height:8px;border-radius:50%;background:${x.cor}"></span><span>${es(x.nome)} <span class="p">${f1(x.p)}</span></span><span class="dd">${x.p > px ? "+" : "−"}${f1(Math.abs(x.p - px))}</span>`;
+  const linha = x => `<span style="width:8px;height:8px;border-radius:50%;background:${x.cor}"></span><span>${es(x.nome)} <span class="p">${f1(x.p)}</span></span><span class="dd">${x.p > px ? "+" : "−"}${f1(Math.abs(x.p - px))} <small style="color:var(--fraco)">${t.atr ? f2(Math.abs(x.p - px) / t.atr) + " ATR" : ""}</small></span>`;
   $("niv").innerHTML = acima.map(linha).join("") + `<div class="agora"><em>agora ${f1(px)}</em></div>` + abaixo.map(linha).join("");
 }
 
