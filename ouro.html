@@ -32,7 +32,7 @@ header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12p
 
 /* veredito */
 .ver{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
-@media(max-width:760px){.ver{grid-template-columns:1fr}}
+@media(max-width:1000px){.ver{grid-template-columns:1fr}}
 .hero{position:relative;overflow:hidden}
 .hero .px{font:700 40px/1 var(--mono);margin:6px 0 2px}
 .hero .var{font:13px var(--mono);color:var(--sub)}
@@ -250,14 +250,25 @@ function veredito(t) {
 
 function setups(t) {
   const cor = e => /ARMADO|ALVO/.test(e) ? "var(--alta)" : /STOP|FALHOU/.test(e) ? "var(--baixa)" : /CONFIRMANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
+  const usd = v => `${v >= 0 ? "+" : "−"}US$ ${f2(Math.abs(v))}`;
+  const res = (s, grande) => s.usd != null
+    ? `<span style="font:800 ${grande ? 20 : 13}px var(--mono);color:${s.usd >= 0 ? "var(--alta)" : "var(--baixa)"};white-space:nowrap">${usd(s.usd)}${s.estado === "ARMADO" ? ' <small style="font-size:10px;color:var(--ouro)">aberto</small>' : ""}</span>`
+    : `<span style="font:700 ${grande ? 16 : 12.5}px var(--mono);color:var(--fraco)">—</span>`;
   const vazio = s => /SEM ENTRADA|SEM DADOS|FALHOU|SEM DIREÇÃO/.test(s.estado) && s.entrada == null;
-  const ativos = (t.setups || []).filter(s => !vazio(s)), parados = (t.setups || []).filter(vazio);
-  $("setups").innerHTML = ativos.map(s => `<div class="setup">
-    <div style="display:flex;align-items:center;gap:8px"><b style="font:800 14px var(--mono)">${es(s.nome)}</b>${prova(s.prova)}<span class="esp" style="flex:1"></span><span class="est" style="color:${cor(s.estado)}">${es(s.estado)}</span></div>
-    <div class="tx" style="margin-top:4px">${es(s.texto)}</div>
+  const lista = t.setups || [], ativos = lista.filter(s => !vazio(s)), parados = lista.filter(vazio);
+  // total do dia: soma dos setups com resultado em US$ (operações do robô)
+  const com = lista.filter(s => s.usd != null), tot = com.reduce((a, s) => a + (s.usd || 0), 0);
+  const ganhos = com.filter(s => s.usd > 0).length, perdas = com.filter(s => s.usd < 0).length, abertos = com.filter(s => s.estado === "ARMADO").length;
+  $("setups").innerHTML = `<div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:6px 0 4px;padding:12px 14px;border-radius:12px;background:${com.length ? (tot >= 0 ? "var(--alta-f)" : "var(--baixa-f)") : "var(--sup2)"};border:1px solid var(--linha)">
+      <div><div class="rot">Resultado do dia</div><div style="font:800 30px/1.1 var(--mono);color:${com.length ? (tot >= 0 ? "var(--alta)" : "var(--baixa)") : "var(--sub)"}">${com.length ? usd(tot) : "US$ 0,00"}</div></div>
+      <div style="color:var(--sub);font-size:12.5px;padding-bottom:4px">${com.length} operaç${com.length === 1 ? "ão" : "ões"} · ${ganhos} ganho${ganhos === 1 ? "" : "s"} · ${perdas} perda${perdas === 1 ? "" : "s"}${abertos ? ` · ${abertos} aberta${abertos === 1 ? "" : "s"}` : ""}</div>
+    </div>` +
+    ativos.map(s => `<div class="setup">
+    <div style="display:flex;align-items:center;gap:8px"><b style="font:800 14px var(--mono);white-space:nowrap">${es(s.nome)}</b>${prova(s.prova)}<span class="est" style="color:${cor(s.estado)};margin-left:4px">${es(s.estado)}</span><span style="flex:1"></span>${res(s, true)}</div>
+    <div class="tx" style="margin-top:4px">${es(String(s.texto || "").replace(/ · [+−]US\$ [\d.,]+$/, ""))}</div>
     ${s.gatilho != null ? `<div class="ops"><span>gatilho ${f1(s.gatilho)}</span>${s.dist != null ? `<span>faltam ${f1(s.dist)} pts</span>` : ""}</div>` : ""}
     ${s.entrada != null ? `<div class="ops"><span>entrada ${f2(s.entrada)}</span>${s.stop != null ? `<span>stop ${f2(s.stop)}</span>` : ""}${s.alvo != null ? `<span>alvo ${f2(s.alvo)}</span>` : ""}${s.saida != null ? `<span>saída ${f2(s.saida)}</span>` : ""}${s.r_aberto != null ? `<span>aberto ${f2(s.r_aberto)}R</span>` : ""}</div>` : ""}
-  </div>`).join("") + (parados.length ? `<div class="setup" style="padding:8px 12px">${parados.map(s => `<div style="display:flex;gap:8px;align-items:center;font-size:12px;padding:3px 0"><b style="font:700 12.5px var(--mono);min-width:72px">${es(s.nome)}</b><span style="color:var(--sub);flex:1">${es(s.texto)}</span><span class="est" style="font-size:11px;color:${cor(s.estado)}">${es(s.estado)}</span></div>`).join("")}</div>` : "");
+  </div>`).join("") + (parados.length ? `<div class="setup" style="padding:8px 12px">${parados.map(s => `<div style="display:flex;gap:8px;align-items:center;font-size:12px;padding:3px 0;min-width:0"><b style="font:700 12.5px var(--mono);white-space:nowrap">${es(s.nome)}</b><span style="color:var(--sub);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${es(s.texto)}</span><span class="est" style="font-size:10.5px;color:${cor(s.estado)};white-space:nowrap">${es(s.estado)}</span><span style="min-width:22px;text-align:right">${res(s, false)}</span></div>`).join("")}</div>` : "");
 }
 
 function medidores(t) {
