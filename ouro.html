@@ -293,7 +293,7 @@ function veredito(t) {
 }
 
 function setups(t) {
-  const cor = e => /ARMADO|ALVO/.test(e) ? "var(--alta)" : /STOP|FALHOU/.test(e) ? "var(--baixa)" : /CONFIRMANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
+  const cor = e => /ARMADO|ALVO/.test(e) ? "var(--alta)" : /STOP|FALHOU|BLOQUEADO/.test(e) ? "var(--baixa)" : /CONFIRMANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
   const usd = v => `${v >= 0 ? "+" : "−"}US$ ${f2(Math.abs(v))}`;
   const res = (s, grande) => s.usd != null
     ? `<span style="font:800 ${grande ? 20 : 13}px var(--mono);color:${s.usd >= 0 ? "var(--alta)" : "var(--baixa)"};white-space:nowrap">${usd(s.usd)}${s.estado === "ARMADO" ? ' <small style="font-size:10px;color:var(--ouro)">aberto</small>' : ""}</span>`
