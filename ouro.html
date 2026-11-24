@@ -240,7 +240,10 @@ async function abre(env, senha) {
   return JSON.parse(await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream("gzip"))).text());
 }
 async function envelope() {
-  const r = await fetch(API, {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"});
+  // 24/11: lê pelo raw.githubusercontent (sem o limite de 60 consultas/hora da API); a API fica só de reserva
+  const RAW = "https://raw.githubusercontent.com/miguelmaianeto2-create/painel/dados/dados.json?t=" + Date.now();
+  try { const r0 = await fetch(RAW, {cache: "no-store"}); if (r0.ok) return await r0.json(); } catch (e) {}
+    const r = await fetch(API, {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"});
   if (r.status === 403 || r.status === 429) throw new Error("limite de consultas do GitHub; tenta de novo em alguns minutos");
   if (!r.ok) throw new Error("GitHub respondeu " + r.status);
   return r.json();
@@ -565,7 +568,7 @@ function contexto(t, d) {
 }
 
 addEventListener("resize", () => SNAP && grafico((SNAP.dados || {}).termometro || {}));
-atualiza(); setInterval(atualiza, 90000);
+atualiza(); setInterval(atualiza, 60000);
 </script>
 </body>
 </html>
