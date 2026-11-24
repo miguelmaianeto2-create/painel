@@ -261,7 +261,7 @@ function setups(t) {
 function medidores(t) {
   const G = t.gv || {}, V = t.vol || {}, O = t.onde || {}, L = t.lado || {};
   const reg = G.regime || (L.gamma || {}).leitura;
-  $("gm-prova").innerHTML = prova(G.prova || (L.gamma || {}).prova);
+  $("gm-prova").innerHTML = prova(G.prova || (L.gamma || {}).prova) + (G.velho ? ` <span class="prova" style="color:var(--baixa)">níveis de ${G.idade_min} min</span>` : "");
   $("gm-v").innerHTML = reg ? `<span style="color:${reg === "NEGATIVO" ? "var(--baixa)" : reg === "POSITIVO" ? "var(--alta)" : "var(--sub)"}">${es(reg)}</span>` : "sem leitura";
   $("gm-d").textContent = G.d_gf != null ? `${f1(Math.abs(G.d_gf))} pts ${G.d_gf < 0 ? "abaixo" : "acima"} do Gamma Flip · ${String(G.regime_txt || "").split(": ").pop()}` : ((L.gamma || {}).carater || "");
   const F = G.faixa_dia;
@@ -333,7 +333,8 @@ function grafico(t) {
     h += `<text x="${x(i)}" y="${H - 6}" fill="var(--fraco)" font-size="10" font-family="var(--mono)" text-anchor="${i === 0 ? "start" : "middle"}">${hh}</text>`;
   }
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.innerHTML = h;
-  $("gr-info").textContent = `${S.length} velas · horário de Brasília${G.atualizado_brt ? " · níveis GV " + G.atualizado_brt.slice(11) : ""}`;
+  $("gr-info").textContent = `${S.length} velas · horário de Brasília${G.idade_min != null ? " · níveis GV de " + G.idade_min + " min atrás" : ""}`;
+  $("gr-info").className = "pill " + (G.velho ? "er" : G.idade_min != null ? "ok" : "");
 }
 
 function niveis(t) {
@@ -364,7 +365,7 @@ function contexto(t, d) {
   $("agr").innerHTML = ag || `<span>fita do GC parada</span><span>—</span>`;
   const fr = d.frescor || {}, ok = o => o && o.ok ? "ok" : "parado";
   $("fontes").innerHTML = [["preço do termômetro", es(t.px_fonte)], ["fita GC (NT8)", ok(fr.preco_fita)], ["gamma GexBot", ok(fr.gamma_full)],
-    ["níveis GloballView", t.gv && t.gv.atualizado_brt ? es(t.gv.atualizado_brt.slice(5)) : "sem"], ["histórico", "Yahoo GC=F (~10 min)"]]
+    ["níveis GloballView", t.gv && t.gv.idade_min != null ? (t.gv.velho ? `<b style="color:var(--baixa)">parado há ${t.gv.idade_min} min</b>` : `ok · ${t.gv.idade_min} min`) : "sem"], ["histórico", "Yahoo GC=F (~10 min)"]]
     .map(([a, b]) => `<span>${a}</span><span>${b}</span>`).join("");
 }
 
