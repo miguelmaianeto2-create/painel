@@ -55,6 +55,13 @@ header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12p
 .rel-ses span{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--sub);border-right:1px solid var(--bg);overflow:hidden;white-space:nowrap}
 .rel-hr{position:relative;height:14px;font:10px var(--mono);color:var(--fraco)}
 .rel-hr span{position:absolute;transform:translateX(-50%)}
+.cor-l{display:grid;grid-template-columns:minmax(0,1.3fr) 92px 64px 74px 70px 66px;gap:8px;align-items:center;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--linha)}
+.cor-l:last-child{border-bottom:0}
+.cor-l .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cor-l .px{font:12.5px var(--mono);text-align:right}
+.cor-l .v{font:700 12.5px var(--mono);text-align:right}
+.cor-h{font-size:10.5px;color:var(--fraco);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--linha2)}
+@media(max-width:520px){.cor-l{grid-template-columns:minmax(0,1fr) 60px 62px 58px;}.cor-l .px,.cor-l .sp{display:none}}
 /* gauges */
 .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
 @media(max-width:900px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -129,6 +136,14 @@ a{color:var(--ouro)}
     <div class="card">
       <div class="gr-cab" style="margin-bottom:6px"><div class="rot">Relógio do dia · horário de Brasília</div><div class="esp"></div><span class="pill" id="rel-info"></span></div>
       <div id="relogio"></div>
+    </div>
+    <div class="card">
+      <div class="gr-cab" style="margin-bottom:6px"><div class="rot">Índice de Metais da Mesa <span class="prova">contexto</span></div><div class="esp"></div><span class="pill" id="imx-info"></span></div>
+      <div id="imx"></div>
+    </div>
+    <div class="card">
+      <div class="gr-cab" style="margin-bottom:4px"><div class="rot">Correlacionados <span class="prova">contexto</span></div><div class="esp"></div><span class="pill" id="cor-info"></span></div>
+      <div id="correl"></div>
     </div>
     </div>
     <div class="col">
@@ -255,7 +270,7 @@ function desenha() {
   $("idade").innerHTML = `<i></i>dados de ${new Date(SNAP.t * 1000).toLocaleTimeString("pt-BR", {timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit"})} BRT · ${idade < 120 ? idade + " s" : Math.round(idade / 60) + " min"}`;
   $("idade").className = "pill " + (idade < 240 ? "ok" : "er");
   if (!t.dia) { $("resumo").textContent = "Sem termômetro agora: " + (t.erro || "sem dado"); return; }
-  for (const fn of [veredito, setups, relogio, medidores, grafico, niveis, ladokv, contexto]) { try { fn(t, d); } catch (e) { console.error(fn.name, e); } }
+  for (const fn of [veredito, setups, relogio, indiceMetais, correlacionados, medidores, grafico, niveis, ladokv, contexto]) { try { fn(t, d); } catch (e) { console.error(fn.name, e); } }
 }
 
 function veredito(t) {
@@ -440,6 +455,54 @@ function relogio(t, d) {
   $("relogio").innerHTML = h;
   const prox = noticias.filter(n => n.ts > agora).sort((a, b) => a.ts - b.ts)[0];
   $("rel-info").textContent = prox ? `notícia ${hh(prox.ts)} · ${prox.titulo}` : "sem notícia forte no pregão";
+}
+
+function indiceMetais(t) {
+  const M = t.metais;
+  if (!M || M.erro) { $("imx").innerHTML = `<div class="tx">${es((M || {}).erro || "sem dados")}</div>`; return; }
+  const cv = v => v >= 0 ? "var(--alta)" : "var(--baixa)", pct = v => (v >= 0 ? "+" : "") + f2(v) + "%";
+  // minicurva: índice (laranja) × ouro (dourado), base 100
+  const C = (M.curva || []).filter(p => p[1] != null);
+  let gr = "";
+  if (C.length > 1) {
+    const W = 300, H = 70, vals = C.flatMap(p => [p[1], p[2]]).filter(v => v != null).concat([100]);
+    const lo = Math.min(...vals), hi = Math.max(...vals), yy = v => (H - 4 - (v - lo) / ((hi - lo) || 1) * (H - 8)).toFixed(1), xx = i => (i / (C.length - 1) * W).toFixed(1);
+    const linha = (k, cor, w) => `<polyline points="${C.map((p, i) => p[k] != null ? xx(i) + "," + yy(p[k]) : "").filter(Boolean).join(" ")}" fill="none" stroke="${cor}" stroke-width="${w}" stroke-linejoin="round"/>`;
+    gr = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:70px;display:block"><line x1="0" x2="${W}" y1="${yy(100)}" y2="${yy(100)}" stroke="var(--linha2)" stroke-dasharray="3 3"/>${linha(1, "rgb(251,146,60)", 2.2)}${linha(2, "var(--ouro)", 1.6)}</svg>
+      <div class="leg" style="margin-top:2px"><span><b style="background:rgb(251,146,60)"></b>índice</span><span><b style="background:var(--ouro)"></b>ouro</span><span style="margin-left:auto">base 100 = fechamento anterior</span></div>`;
+  }
+  const mx = Math.max(0.5, ...M.comp.filter(c => c.var != null).map(c => Math.abs(c.var)));
+  const barras = M.comp.map(c => c.var == null ? `<div class="rel-l" style="grid-template-columns:72px 1fr 64px"><b>${es(c.nome)}</b><span class="tx">sem dado</span><span></span></div>` :
+    `<div class="rel-l" style="grid-template-columns:72px 1fr 64px"><b style="${c.sym === "GC=F" ? "color:var(--ouro)" : ""}">${es(c.nome)}</b>
+      <div class="rel-t" style="height:10px"><i style="left:50%;width:1px;background:var(--linha2)"></i><i style="${c.var >= 0 ? "left:50%" : "right:50%"};width:${Math.abs(c.var) / mx * 50}%;background:${cv(c.var)};opacity:.85"></i></div>
+      <span class="rel-st" style="color:${cv(c.var)};font-weight:700">${pct(c.var)}</span></div>`).join("");
+  $("imx").innerHTML = `<div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px">
+      <div><div style="font:800 30px/1 var(--mono)">${f2(M.valor)}</div><div style="font:700 13px var(--mono);color:${cv(M.var)};margin-top:3px">${pct(M.var)} no dia</div></div>
+      <div style="font-size:12.5px;padding-bottom:2px"><b style="color:${M.ouro_rel > 0.15 ? "var(--alta)" : M.ouro_rel < -0.15 ? "var(--baixa)" : "var(--txt)"}">${es(M.ouro_txt || "")}</b>
+        <div style="color:var(--sub)">ouro ${M.ouro_rel != null ? (M.ouro_rel >= 0 ? "+" : "") + f2(M.ouro_rel) + " p.p." : "—"} contra o índice</div></div></div>
+    ${gr}<div style="margin-top:8px">${barras}</div>`;
+  $("imx-info").textContent = `${M.subindo} sobem · ${M.caindo} caem`;
+}
+
+function correlacionados(t) {
+  const C = t.correl || [];
+  if (!C.length) { $("correl").innerHTML = '<div class="tx">sem dados</div>'; return; }
+  const sp = a => { if (!a || a.length < 2) return ""; const lo = Math.min(...a), hi = Math.max(...a), w = 70, h = 20;
+    const pts = a.map((v, i) => `${(i / (a.length - 1) * w).toFixed(1)},${(h - (hi > lo ? (v - lo) / (hi - lo) : .5) * h).toFixed(1)}`).join(" ");
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${a[a.length - 1] >= a[0] ? "var(--alta)" : "var(--baixa)"}" stroke-width="1.4"/></svg>`; };
+  const corr = c => { if (c == null) return '<span style="color:var(--fraco)">—</span>'; const forte = Math.abs(c) >= .5, cor = c > 0 ? "var(--alta)" : "var(--baixa)";
+    return `<span style="display:inline-flex;align-items:center;gap:5px;justify-content:flex-end;width:100%"><span style="width:28px;height:5px;border-radius:3px;background:var(--sup2);position:relative;overflow:hidden"><i style="position:absolute;top:0;bottom:0;${c > 0 ? "left:50%" : "right:50%"};width:${Math.abs(c) * 50}%;background:${cor}"></i></span><b style="font:${forte ? 700 : 400} 12px var(--mono);color:${forte ? cor : "var(--sub)"}">${c > 0 ? "+" : ""}${f2(c)}</b></span>`; };
+  const ef = e => e === 1 ? '<span class="prova ap" style="margin:0">ajuda ▲</span>' : e === -1 ? '<span class="prova" style="margin:0;background:var(--baixa-f);color:var(--baixa);border-color:transparent">pesa ▼</span>' : '<span class="prova" style="margin:0">neutro</span>';
+  let h = `<div class="cor-l cor-h"><span>ativo</span><span class="px">preço</span><span class="v">dia</span><span class="sp">hoje</span><span style="text-align:right">corr. 20d</span><span style="text-align:right">no ouro</span></div>`;
+  for (const c of C) {
+    if (c.erro) { h += `<div class="cor-l"><span class="n">${es(c.nome || "—")}</span><span class="px" style="color:var(--fraco)">sem dado</span><span></span><span class="sp"></span><span></span><span></span></div>`; continue; }
+    h += `<div class="cor-l"><span class="n">${es(c.nome)}</span><span class="px">${c.px != null ? Number(c.px).toLocaleString("pt-BR", {maximumFractionDigits: c.px < 10 ? 4 : 2}) : "—"}</span>
+      <span class="v" style="color:${(c.var || 0) >= 0 ? "var(--alta)" : "var(--baixa)"}">${c.var != null ? (c.var >= 0 ? "+" : "") + f2(c.var) + "%" : "—"}</span>
+      <span class="sp">${sp(c.spark)}</span><span>${corr(c.corr)}</span><span style="text-align:right">${ef(c.efeito)}</span></div>`;
+  }
+  $("correl").innerHTML = h;
+  const aj = C.filter(c => c.efeito === 1).length, pe = C.filter(c => c.efeito === -1).length;
+  $("cor-info").textContent = `${aj} ajudam · ${pe} pesam`;
 }
 
 function niveis(t) {
