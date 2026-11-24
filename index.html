@@ -376,7 +376,12 @@ footer{margin-top:26px;color:var(--sub2);font-size:11.5px;display:flex;justify-c
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
-const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// 24/11 (presidente): horário sempre de Brasília. Converte "HH:MM NY" e "HH:MM–HH:MM NY" vindos do motor para BRT.
+const DIF_NY = (() => { const h = tz => +new Intl.DateTimeFormat("en-US", {timeZone: tz, hour: "numeric", hourCycle: "h23"}).format(new Date()); return ((h("America/Sao_Paulo") - h("America/New_York")) + 24) % 24; })();
+const hBRT = (h, m) => String((+h + DIF_NY) % 24).padStart(2, "0") + ":" + m;
+const paraBRT = s => String(s).replace(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})\s*NY/g, (x, a, b, c, d) => hBRT(a, b) + "–" + hBRT(c, d) + " BRT")
+                             .replace(/(\d{1,2}):(\d{2})\s*NY/g, (x, a, b) => hBRT(a, b) + " BRT");
+const esc = s => paraBRT(String(s == null ? "" : s)).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const f1 = v => (v == null || isNaN(v)) ? "—" : Number(v).toFixed(1);
 const f2 = v => (v == null || isNaN(v)) ? "—" : Number(v).toFixed(2);
 const sg = (v, n) => (v == null || isNaN(v)) ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(n == null ? 1 : n);
@@ -414,7 +419,7 @@ function cabecalho(d) {
     p(pf.ok ? "ok" : "er", "Fita GC", idade(pf.idade_s), "preço do GC vindo do NT8 (XpOuroFita)") +
     p(nt.ativo ? "al" : gf.ok ? "ok" : "er", "Gamma " + gNome, nt.ativo ? (nt.retrato_brt || "").slice(6, 11) : idade(gf.idade_s), "níveis de gamma (Alfa Omega / gexbot)") +
     ea + p(ap.ok ? "ok" : "er", "Coletor", ap.ok ? "ok" : "fora", "servidor 3480: agressão e macro");
-  $("relogio").innerHTML = `<b>${esc((d.agora_brt || "").slice(6, 11))}</b> BRT<br>NY ${esc(d.agora_ny || "")} · ${esc(d.pregao || "")}`;
+  $("relogio").innerHTML = `<b>${esc((d.agora_brt || "").slice(6, 11))}</b> BRT<br>${esc(d.pregao || "")}`;
 }
 
 function heroi(d) {
@@ -676,7 +681,7 @@ function recolhivel(d) {
 
 function tradesDia(d) {
   const m5 = d.mt5 || {}, h = m5.hoje || {}, tt = m5.total || {};
-  $("td-ses").textContent = "sessão " + (d.sessao || "") + " (18:00 NY → 18:00 NY)";
+  $("td-ses").textContent = "sessão " + (d.sessao || "") + " (" + hBRT(18, "00") + " → " + hBRT(18, "00") + " BRT)";
   $("td-desde").textContent = m5.ativo ? "" : "· " + (m5.motivo || "EA do MT5 ainda não ligado");
   const sim = (d.variantes || []).reduce((a, c) => { const x = c.hoje || {}; a.n += x.n || 0; a.usd += x.usd || 0; return a; }, {n: 0, usd: 0});
   const nPos = Object.values(m5.posicoes || {}).reduce((a, l) => a + l.length, 0);
@@ -733,7 +738,7 @@ function saudeWS() {
     p(fr ? "ok" : "al", "Mapa", fr ? "fresco" : "velho", "estado do mapa do fornecedor e carimbo até 60 s") +
     p(E.precos_idade_s != null && E.precos_idade_s < 15 ? "ok" : "er", "Executor NT8", E.precos_idade_s == null ? "desligado" : idade(E.precos_idade_s), "preços do MES/MNQ gravados pelo XpJarvisNiveisExec") +
     p("ok", "Motor", (E.agora_brt || "").slice(6, 11), "servidor 3482");
-  if (D) $("relogio").innerHTML = `<b>${esc((D.agora_brt || "").slice(6, 11))}</b> BRT<br>NY ${esc(D.agora_ny || "")}`;
+  if (D) $("relogio").innerHTML = `<b>${esc((D.agora_brt || "").slice(6, 11))}</b> BRT`;
 }
 
 function mesaWS() {
@@ -874,7 +879,7 @@ function legenda() {
     it("perfil", `<b style="color:${COR_POS}">▬</b><b style="color:${COR_NEG}">▬</b> perfil top strikes`) +
     it("sessao", `<i style="border-color:#aab4c0;border-top-style:dotted"></i>separador de sessão`) +
     it("londres", `<i style="border-color:#5d6b7d;border-top-style:dotted"></i>Londres`) +
-    it("ny", `<i style="border-color:#5d6b7d;border-top-style:dotted"></i>NY 09:30`) +
+    it("ny", `<i style="border-color:#5d6b7d;border-top-style:dotted"></i>abertura NY (${hBRT(9, "30")} BRT)`) +
     it("marcas", `<b class="c">▲</b><b class="v">▼</b>× trades`) +
     it("regime", `fundo regime`) +
     `<span class="lg"><b style="color:${COR_MIX}">■</b> fundidos + e −</span>` +
