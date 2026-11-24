@@ -137,6 +137,33 @@ a{color:var(--ouro)}
       <div class="gr-cab" style="margin-bottom:6px"><div class="rot">Relógio do dia · horário de Brasília</div><div class="esp"></div><span class="pill" id="rel-info"></span></div>
       <div id="relogio"></div>
     </div>
+    </div>
+    <div class="col">
+    <div class="card">
+      <div class="rot">Setups</div>
+      <div id="setups"></div>
+    </div>
+    </div>
+  </section>
+
+  <!-- GRÁFICO -->
+  <section class="card gr">
+    <div class="gr-cab"><div class="rot">Preço × níveis · M5 · ontem e hoje</div><div class="esp"></div><span class="pill" id="gr-info"></span></div>
+    <svg id="gr" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="leg">
+      <span><b style="background:var(--txt)"></b>preço</span>
+      <span><b style="background:var(--ouro)"></b>PDH / PDL</span>
+      <span><b style="background:var(--alta)"></b>Call Wall</span>
+      <span><b style="background:var(--baixa)"></b>Put Wall</span>
+      <span><b style="background:var(--roxo)"></b>Gamma Flip</span>
+      <span><b style="background:var(--azul)"></b>1D Min / Max</span>
+      <span><b style="background:var(--linha2)"></b>GEX 1–10</span>
+    </div>
+  </section>
+
+  <!-- METAIS + PONTOS -->
+  <section class="ver">
+    <div class="col">
     <div class="card">
       <div class="gr-cab" style="margin-bottom:6px"><div class="rot">Índice de Metais da Mesa <span class="prova">contexto</span></div><div class="esp"></div><span class="pill" id="imx-info"></span></div>
       <div id="imx"></div>
@@ -147,10 +174,6 @@ a{color:var(--ouro)}
     </div>
     </div>
     <div class="col">
-    <div class="card">
-      <div class="rot">Setups</div>
-      <div id="setups"></div>
-    </div>
     <div class="card">
       <div class="gr-cab" style="margin-bottom:6px"><div class="rot">Pontos do pregão</div><div class="esp"></div><span class="pill" id="pt-info"></span></div>
       <div id="pontos"></div>
@@ -174,20 +197,6 @@ a{color:var(--ouro)}
       <div class="esc"><span id="rg-pdl">PDL</span><span id="rg-pdh">PDH</span></div></div>
   </section>
 
-  <!-- GRÁFICO -->
-  <section class="card gr">
-    <div class="gr-cab"><div class="rot">Preço × níveis · M5 · ontem e hoje</div><div class="esp"></div><span class="pill" id="gr-info"></span></div>
-    <svg id="gr" xmlns="http://www.w3.org/2000/svg"></svg>
-    <div class="leg">
-      <span><b style="background:var(--txt)"></b>preço</span>
-      <span><b style="background:var(--ouro)"></b>PDH / PDL</span>
-      <span><b style="background:var(--alta)"></b>Call Wall</span>
-      <span><b style="background:var(--baixa)"></b>Put Wall</span>
-      <span><b style="background:var(--roxo)"></b>Gamma Flip</span>
-      <span><b style="background:var(--azul)"></b>1D Min / Max</span>
-      <span><b style="background:var(--linha2)"></b>GEX 1–10</span>
-    </div>
-  </section>
 
   <!-- NÍVEIS + CONTEXTO -->
   <section class="duas">
@@ -467,7 +476,7 @@ function relogio(t, d) {
 function indiceMetais(t) {
   const M = t.metais;
   if (!M || M.erro) { $("imx").innerHTML = `<div class="tx">${es((M || {}).erro || "sem dados")}</div>`; return; }
-  const cv = v => v >= 0 ? "var(--alta)" : "var(--baixa)", pct = v => (v >= 0 ? "+" : "") + f2(v) + "%";
+  const cv = v => v >= 0 ? "var(--alta)" : "var(--baixa)", pct = v => { v = Math.round(v * 100) / 100 || 0; return (v > 0 ? "+" : v < 0 ? "−" : "") + f2(Math.abs(v)) + "%"; };
   // minicurva: índice (laranja) × ouro (dourado), base 100
   const C = (M.curva || []).filter(p => p[1] != null);
   let gr = "";
