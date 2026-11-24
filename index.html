@@ -230,6 +230,14 @@ footer{margin-top:26px;color:var(--sub2);font-size:11.5px;display:flex;justify-c
 </section>
 <div class="agora" id="agora"><div class="ic">·</div><div class="tx">carregando…</div></div>
 
+<!-- TERMÔMETRO DO OURO (24/11): só exibição; calculado no publicador (06_Mesa_XAU/Indicador_GOLD/termometro.py) -->
+<section class="card" id="termo-card" style="margin-top:14px">
+  <h2>Termômetro do ouro <span class="sub" id="termo-sub"></span></h2>
+  <div class="leit" id="termo-resumo" style="margin:4px 0 10px;font-weight:600"></div>
+  <div class="kv" id="termo-kv" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))"></div>
+  <div class="sub" style="margin-top:8px">Não prevê o próximo movimento: mostra o lado do dia, o tamanho esperado, onde o preço está e se há setup aprovado armado. Cada linha traz o rótulo da prova que tem.</div>
+</section>
+
 <!-- OPERACIONAL -->
 <div class="sec-tit"><h1>Operacional <small id="op-sub">9 regras · risco 0,25% cada · executam no MT5 demo</small></h1><span class="sub" id="op-risco"></span></div>
 <div id="pistas"></div>
@@ -787,11 +795,34 @@ function pontosMesas() {
   $("dot-ws").className = "dot " + (!E ? "er" : wsPos ? "em" : E.precos_idade_s != null && E.precos_idade_s < 15 ? "ok" : "");
 }
 
+function termometro(d) {
+  const t = d.termometro, es = s => String(s == null ? "—" : s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+  if (!t) { $("termo-resumo").textContent = "Aparece na versão publicada (celular): é calculado pelo publicador."; $("termo-kv").innerHTML = ""; return; }
+  if (t.erro || !t.dia) { $("termo-resumo").textContent = "Sem termômetro agora: " + (t.erro || "sem dado"); $("termo-kv").innerHTML = ""; return; }
+  $("termo-sub").textContent = `dia ${t.dia} · ATR ${t.atr} pts · preço: ${t.px_fonte} · ${t.fonte}`;
+  $("termo-resumo").textContent = t.resumo || "";
+  const tag = p => `<span class="tag ${/aprovado/.test(p) ? "c" : /medição/.test(p) ? "a" : ""}">${es(p)}</span>`;
+  const L = t.lado || {}, V = t.vol || {}, O = t.onde || {}, cel = [];
+  const corL = L.tend > 0 ? "var(--pos-t)" : L.tend < 0 ? "var(--neg-t)" : "var(--txt)";
+  cel.push(`<div>1 · Lado do dia ${tag(L.prova || "")}<b style="color:${corL}">${es(L.texto)} <small>(${es(L.combina)})</small></b>
+    fechamento ${es(L.fech_ontem)} × EMA20 ${es(L.ema20)} (${es(L.dist_ema)} pts)<br>gamma: ${es((L.gamma || {}).leitura || "sem leitura")} · ${es((L.gamma || {}).carater)} ${tag((L.gamma || {}).prova || "")}</div>`);
+  cel.push(V.erro ? `<div>2 · Volatilidade<b>—</b>${es(V.erro)}</div>` :
+    `<div>2 · Volatilidade ${tag(V.prova || "")}<b>${es(V.texto)} <small>(quintil ${es(V.quintil)}/5)</small></b>
+    últimas 2 h: ${es(V.ultimas_2h_pts)} pts · próximas 2 h típicas: <b style="display:inline;font-size:12px">${es(V.prox_2h_pts)} pts</b> (${es(V.prox_2h_atr)} ATR)</div>`);
+  const g = (x, r) => x ? `${r} ${es(x.nome)} ${es(x.preco)} (${es(x.fase)})` : "";
+  cel.push(`<div>3 · Onde está ${tag(O.prova || "contexto")}<b>${es(O.px)}</b>${es(O.texto)}<br>PDH ${es(O.pdh)} · meio ${es(O.meio)} · PDL ${es(O.pdl)}
+    ${O.gamma_acima || O.gamma_abaixo ? "<br>gamma: " + [g(O.gamma_acima, "▲"), g(O.gamma_abaixo, "▼")].filter(Boolean).join(" · ") : "<br>gamma: sem níveis agora"}</div>`);
+  const S = t.setups || [];
+  cel.push(`<div>4 · Setup armado${S.map(s => `<b style="color:${/ARMADO|ALVO/.test(s.estado) ? "var(--pos-t)" : /STOP|FALHOU/.test(s.estado) ? "var(--neg-t)" : "var(--txt)"}">${es(s.estado)}</b>
+    ${es(s.regra)} ${tag(s.prova || "")}<br>${es(s.texto)}${s.entrada != null ? `<br>entrada ${es(s.entrada)} · stop ${es(s.stop)} · alvo ${es(s.alvo)}${s.r_aberto != null ? " · aberto " + es(s.r_aberto) + "R" : ""}` : ""}`).join("<hr style='border:0;border-top:1px solid var(--linha);margin:6px 0'>") || "<b>—</b>"}</div>`);
+  $("termo-kv").innerHTML = cel.join("");
+}
+
 function desenha() {
   try { pontosMesas(); } catch (e) { console.error("pontos", e); }
   if (MESA === "ws") { try { saudeWS(); mesaWS(); } catch (e) { console.error("ws", e); } return; }
   const d = D; if (!d) return;
-  for (const fn of [cabecalho, heroi, agora, operacional, tradesDia, escada, melhor, v1card, agressao, macro, regimeZg, placar, resultados, recolhivel]) {
+  for (const fn of [cabecalho, heroi, agora, termometro, operacional, tradesDia, escada, melhor, v1card, agressao, macro, regimeZg, placar, resultados, recolhivel]) {
     try { fn(d); } catch (e) { console.error(fn.name, e); }
   }
   const er = Object.entries(d.erros || {});
