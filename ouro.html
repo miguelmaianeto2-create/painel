@@ -115,7 +115,7 @@ a{color:var(--ouro)}
       <div class="resumo" id="resumo">carregando…</div>
     </div>
     <div class="card">
-      <div class="rot">Setup aprovado agora</div>
+      <div class="rot">Setups</div>
       <div id="setups"></div>
     </div>
   </section>
@@ -249,11 +249,11 @@ function veredito(t) {
 }
 
 function setups(t) {
-  const cor = e => /ARMADO|ALVO/.test(e) ? "var(--alta)" : /STOP|FALHOU/.test(e) ? "var(--baixa)" : /ACEITANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
+  const cor = e => /ARMADO|ALVO/.test(e) ? "var(--alta)" : /STOP|FALHOU/.test(e) ? "var(--baixa)" : /CONFIRMANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
   $("setups").innerHTML = (t.setups || []).map(s => `<div class="setup">
-    <div class="est" style="color:${cor(s.estado)}">${es(s.estado)}</div>
-    <div class="reg">${es(s.regra)} ${prova(s.prova)}</div>
-    <div class="tx">${es(s.texto)}</div>
+    <div style="display:flex;align-items:center;gap:8px"><b style="font:800 14px var(--mono)">${es(s.nome)}</b>${prova(s.prova)}<span class="esp" style="flex:1"></span><span class="est" style="color:${cor(s.estado)}">${es(s.estado)}</span></div>
+    <div class="tx" style="margin-top:4px">${es(s.texto)}</div>
+    ${s.gatilho != null ? `<div class="ops"><span>gatilho ${f1(s.gatilho)}</span>${s.dist != null ? `<span>faltam ${f1(s.dist)} pts</span>` : ""}</div>` : ""}
     ${s.entrada != null ? `<div class="ops"><span>entrada ${f1(s.entrada)}</span><span>stop ${f1(s.stop)}</span><span>alvo ${f1(s.alvo)}</span>${s.r_aberto != null ? `<span>aberto ${f2(s.r_aberto)}R</span>` : ""}</div>` : ""}
   </div>`).join("") || `<div class="setup"><div class="tx">Sem setup calculado.</div></div>`;
 }
@@ -296,7 +296,11 @@ function grafico(t) {
     else if (n.id === "MN" || n.id === "MX") add(n.preco, "var(--azul)", n.nome, 1.2, "5 4");
     else if (/^G\d+$/.test(n.id)) add(n.preco, "var(--linha2)", "", 1, "2 4");
   }
-  for (const s of t.setups || []) if (s.entrada != null) { add(s.entrada, "var(--txt)", "entrada", 1, "3 3"); add(s.stop, "var(--baixa)", "stop", 1, "3 3"); add(s.alvo, "var(--alta)", "alvo", 1, "3 3"); }
+  for (const s of t.setups || []) {
+    const n = String(s.nome || "").replace("Setup ", "S");
+    if (s.entrada != null) { add(s.entrada, "var(--txt)", n + " entrada", 1, "3 3"); add(s.stop, "var(--baixa)", n + " stop", 1, "3 3"); add(s.alvo, "var(--alta)", n + " alvo", 1, "3 3"); }
+    else if (s.gatilho != null && !/FALHOU|STOP|ALVO|ENCERRADO/.test(s.estado)) add(s.gatilho, "var(--ouro)", n + " gatilho", 1, "6 3");
+  }
   let lo = Math.min(...S.map(b => b[3])), hi = Math.max(...S.map(b => b[2]));
   const pad = (hi - lo) * 0.12; lo -= pad; hi += pad;
   // níveis próximos entram na escala; distantes viram seta na borda

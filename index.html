@@ -814,7 +814,7 @@ function termometro(d) {
     ${O.gamma_acima || O.gamma_abaixo ? "<br>gamma: " + [g(O.gamma_acima, "▲"), g(O.gamma_abaixo, "▼")].filter(Boolean).join(" · ") : "<br>gamma: sem níveis agora"}</div>`);
   const S = t.setups || [];
   cel.push(`<div>4 · Setup armado${S.map(s => `<b style="color:${/ARMADO|ALVO/.test(s.estado) ? "var(--pos-t)" : /STOP|FALHOU/.test(s.estado) ? "var(--neg-t)" : "var(--txt)"}">${es(s.estado)}</b>
-    ${es(s.regra)} ${tag(s.prova || "")}<br>${es(s.texto)}${s.entrada != null ? `<br>entrada ${es(s.entrada)} · stop ${es(s.stop)} · alvo ${es(s.alvo)}${s.r_aberto != null ? " · aberto " + es(s.r_aberto) + "R" : ""}` : ""}`).join("<hr style='border:0;border-top:1px solid var(--linha);margin:6px 0'>") || "<b>—</b>"}</div>`);
+    ${es(s.nome || s.regra)} ${tag(s.prova || "")}<br>${es(s.texto)}${s.entrada != null ? `<br>entrada ${es(s.entrada)} · stop ${es(s.stop)} · alvo ${es(s.alvo)}${s.r_aberto != null ? " · aberto " + es(s.r_aberto) + "R" : ""}` : ""}`).join("<hr style='border:0;border-top:1px solid var(--linha);margin:6px 0'>") || "<b>—</b>"}</div>`);
   $("termo-kv").innerHTML = cel.join("");
 }
 
