@@ -309,7 +309,7 @@ function veredito(t) {
 }
 
 function setups(t) {
-  const cor = e => /ARMADO|ALVO/.test(e) ? "var(--alta)" : /STOP|FALHOU|BLOQUEADO/.test(e) ? "var(--baixa)" : /CONFIRMANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
+  const cor = e => /ARMADO|ALVO|GANHO/.test(e) ? "var(--alta)" : /STOP|FALHOU|BLOQUEADO/.test(e) ? "var(--baixa)" : /CONFIRMANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
   const usd = v => `${v >= 0 ? "+" : "−"}US$ ${f2(Math.abs(v))}`;
   const vd = s => s.usd_dia != null ? s.usd_dia : s.usd;     // 25/11: resultado do setup no dia (todas as operações)
   const res = (s, grande) => vd(s) != null
@@ -463,11 +463,11 @@ function relogio(t, d) {
     const ts = Date.UTC(ano, +m[2] - 1, +m[1], +m[3] + 3, +m[4]) / 1000; return {ts, titulo: a.titulo}; }).filter(n => n && n.ts >= R.ini && n.ts <= R.fim);
   let h = `<div class="rel-l"><b>Pregão</b><div class="rel-ses">${(R.sessoes || []).map(s => `<span style="left:${pc(s.ini)}%;width:${pc(s.fim) - pc(s.ini)}%;background:rgba(${s.cor},.16);color:rgb(${s.cor});font-weight:700">${es(s.nome)}</span>`).join("")}${noticias.map(n => `<i title="${es(n.titulo)}" style="position:absolute;left:${pc(n.ts)}%;top:0;bottom:0;width:2px;background:var(--baixa)"></i>`).join("")}${linhaAgora}</div><span class="rel-st" style="color:var(--sub)">${dentro ? "agora " + hh(agora) : "fora do pregão"}</span></div>`;
   for (const j of R.janelas || []) {
-    const s = setups[j.nome] || {}, feito = s.entrada != null || /ALVO|STOP|FALHOU|ENCERRADO/.test(s.estado || "");
+    const s = setups[j.nome] || {}, feito = s.entrada != null || /ALVO|STOP|GANHO|FALHOU|ENCERRADO/.test(s.estado || "");
     let st, cor;
     if (j.aplica === false) { st = "não vale hoje"; cor = "var(--fraco)"; }
     else if (s.estado === "ARMADO") { st = "em posição"; cor = "var(--ouro)"; }
-    else if (feito && s.usd != null) { st = (s.usd >= 0 ? "+" : "−") + "US$ " + f2(Math.abs(s.usd)); cor = s.usd >= 0 ? "var(--alta)" : "var(--baixa)"; }
+    else if (feito && s.usd != null) { const v = s.usd_dia != null ? s.usd_dia : s.usd; st = (v >= 0 ? "+" : "−") + "US$ " + f2(Math.abs(v)); cor = v >= 0 ? "var(--alta)" : "var(--baixa)"; }
     else if (j.evento) { st = "a qualquer hora"; cor = "var(--sub)"; }
     else if (agora < j.ini) { const m = Math.round((j.ini - agora) / 60); st = "em " + (m >= 60 ? Math.floor(m / 60) + "h" + String(m % 60).padStart(2, "0") : m + " min"); cor = "var(--txt)"; }
     else if (agora <= j.fim) { st = "aberta agora"; cor = "var(--alta)"; }
