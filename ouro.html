@@ -308,6 +308,20 @@ function veredito(t) {
   $("resumo").textContent = t.resumo || "";
 }
 
+// 25/11: total acumulado desde o início da carteira na demo (fechadas + abertas a mercado)
+function acumulado(A, usd) {
+  if (!A || A.usd == null) return "";
+  const [a, m, d] = String(A.desde || "").split("-"), pos = A.usd >= 0;
+  const por = Object.entries(A.por_setup || {}).map(([n, v]) => `<span style="white-space:nowrap">${es(n.replace("Setup ", "S"))} <b style="color:${v >= 0 ? "var(--alta)" : "var(--baixa)"}">${usd(v)}</b></span>`).join(" · ");
+  return `<div style="margin:0 0 6px;padding:10px 14px;border-radius:12px;background:var(--sup2);border:1px solid var(--linha)">
+    <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+      <div><div class="rot">Total desde ${d}/${m}</div><div style="font:800 24px/1.1 var(--mono);color:${pos ? "var(--alta)" : "var(--baixa)"}">${usd(A.usd)}</div></div>
+      <div style="color:var(--sub);font-size:12.5px;padding-bottom:3px">${A.n} operaç${A.n === 1 ? "ão" : "ões"} · ${A.ganhos} ganho${A.ganhos === 1 ? "" : "s"} · ${A.perdas} perda${A.perdas === 1 ? "" : "s"}</div>
+    </div>
+    ${por ? `<div style="color:var(--sub);font:600 11.5px var(--mono);margin-top:6px;line-height:1.7">${por}</div>` : ""}
+  </div>`;
+}
+
 function setups(t) {
   const cor = e => /ARMADO|ALVO|GANHO/.test(e) ? "var(--alta)" : /STOP|FALHOU|BLOQUEADO/.test(e) ? "var(--baixa)" : /CONFIRMANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
   const usd = v => `${v >= 0 ? "+" : "−"}US$ ${f2(Math.abs(v))}`;
@@ -323,7 +337,7 @@ function setups(t) {
   $("setups").innerHTML = `<div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:6px 0 4px;padding:12px 14px;border-radius:12px;background:${com.length ? (tot >= 0 ? "var(--alta-f)" : "var(--baixa-f)") : "var(--sup2)"};border:1px solid var(--linha)">
       <div><div class="rot">Resultado do dia</div><div style="font:800 30px/1.1 var(--mono);color:${com.length ? (tot >= 0 ? "var(--alta)" : "var(--baixa)") : "var(--sub)"}">${com.length ? usd(tot) : "US$ 0,00"}</div></div>
       <div style="color:var(--sub);font-size:12.5px;padding-bottom:4px">${com.length} operaç${com.length === 1 ? "ão" : "ões"} · ${ganhos} ganho${ganhos === 1 ? "" : "s"} · ${perdas} perda${perdas === 1 ? "" : "s"}${abertos ? ` · ${abertos} aberta${abertos === 1 ? "" : "s"}` : ""}</div>
-    </div>` +
+    </div>` + acumulado(t.acumulado, usd) +
     ativos.map(s => `<div class="setup">
     <div style="display:flex;align-items:center;gap:8px"><b style="font:800 14px var(--mono);white-space:nowrap">${es(s.nome)}</b>${prova(s.prova)}<span class="est" style="color:${cor(s.estado)};margin-left:4px">${es(s.estado)}</span><span style="flex:1"></span>${res(s, true)}</div>
     <div class="tx" style="margin-top:4px">${es(String(s.texto || "").replace(/ · [+−]US\$ [\d.,]+$/, ""))}</div>
