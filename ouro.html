@@ -322,6 +322,30 @@ function acumulado(A, usd) {
   </div>`;
 }
 
+// 25/11 (presidente): setups do ouro na conta REAL (Exness), separados da demo
+function contaReal(R, usd) {
+  if (!R) return "";
+  const cab = t => `<div class="rot" style="margin:8px 0 4px;font-size:12px;letter-spacing:.06em">${t}</div>`;
+  if (R.erro || !R.dia) return cab("CONTA REAL") + `<div class="setup tx" style="color:var(--sub)">sem leitura da conta real agora</div>`;
+  const cr = v => v > 0 ? "var(--alta)" : v < 0 ? "var(--baixa)" : "var(--sub)";
+  const D = R.dia, T = R.total, [, m, d] = String(T.desde || "").split("-");
+  const velho = R.idade_s > 300 ? ` <span class="prova" style="color:var(--baixa)">leitura de ${Math.round(R.idade_s / 60)} min</span>` : "";
+  const linhas = (R.por_setup || []).map(s => `<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;padding:4px 0;border-top:1px solid var(--linha)">
+      <b style="font:700 12.5px var(--mono);white-space:nowrap">${es(s.setup)}</b>
+      <span style="color:var(--sub);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.aberta ? `<span style="color:var(--ouro)">aberta</span> · ${es(s.aberta.lado)} ${f2(s.aberta.entrada)}` : `${s.n} op.`}</span>
+      <span style="font:700 12.5px var(--mono);color:${cr(s.dia)};white-space:nowrap" title="hoje">${s.dia ? usd(s.dia) : "—"}</span>
+      <span style="font:600 11.5px var(--mono);color:${cr(s.total)};white-space:nowrap;min-width:84px;text-align:right" title="total">${usd(s.total)}</span></div>`).join("");
+  return cab("CONTA REAL · EXNESS" + (R.saldo != null ? ` · saldo US$ ${f2(R.saldo)}` : "")) + velho +
+    `<div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 6px;padding:12px 14px;border-radius:12px;background:${D.usd >= 0 ? "var(--alta-f)" : "var(--baixa-f)"};border:1px solid var(--linha)">
+      <div><div class="rot">Resultado do dia</div><div style="font:800 26px/1.1 var(--mono);color:${cr(D.usd)}">${usd(D.usd)}</div>
+        <div style="color:var(--sub);font-size:12px">${D.n} op. · ${D.ganhos} ganho${D.ganhos === 1 ? "" : "s"} · ${D.perdas} perda${D.perdas === 1 ? "" : "s"}${D.abertas ? ` · ${D.abertas} aberta${D.abertas === 1 ? "" : "s"}` : ""}</div></div>
+      <div><div class="rot">Total desde ${d}/${m}</div><div style="font:800 20px/1.1 var(--mono);color:${cr(T.usd)}">${usd(T.usd)}</div>
+        <div style="color:var(--sub);font-size:12px">${T.n} op. · ${T.ganhos} ganho${T.ganhos === 1 ? "" : "s"} · ${T.perdas} perda${T.perdas === 1 ? "" : "s"}</div></div>
+    </div>
+    <div class="setup" style="padding:6px 12px"><div style="display:flex;gap:8px;font-size:10.5px;color:var(--fraco)"><span style="flex:1">setup</span><span>hoje</span><span style="min-width:84px;text-align:right">total</span></div>${linhas}</div>` +
+    cab("CONTA DEMO");
+}
+
 function setups(t) {
   const cor = e => /ARMADO|ALVO|GANHO/.test(e) ? "var(--alta)" : /STOP|FALHOU|BLOQUEADO/.test(e) ? "var(--baixa)" : /CONFIRMANDO/.test(e) ? "var(--ouro)" : "var(--sub)";
   const usd = v => `${v >= 0 ? "+" : "−"}US$ ${f2(Math.abs(v))}`;
@@ -334,7 +358,7 @@ function setups(t) {
   // total do dia: soma dos setups com resultado em US$ (operações do robô)
   const com = lista.flatMap(s => [...(s.ops || []), s]).filter(s => s.usd != null), tot = com.reduce((a, s) => a + (s.usd || 0), 0);
   const ganhos = com.filter(s => s.usd > 0).length, perdas = com.filter(s => s.usd < 0).length, abertos = com.filter(s => s.estado === "ARMADO").length;
-  $("setups").innerHTML = `<div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:6px 0 4px;padding:12px 14px;border-radius:12px;background:${com.length ? (tot >= 0 ? "var(--alta-f)" : "var(--baixa-f)") : "var(--sup2)"};border:1px solid var(--linha)">
+  $("setups").innerHTML = contaReal(t.real, usd) + `<div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:6px 0 4px;padding:12px 14px;border-radius:12px;background:${com.length ? (tot >= 0 ? "var(--alta-f)" : "var(--baixa-f)") : "var(--sup2)"};border:1px solid var(--linha)">
       <div><div class="rot">Resultado do dia</div><div style="font:800 30px/1.1 var(--mono);color:${com.length ? (tot >= 0 ? "var(--alta)" : "var(--baixa)") : "var(--sub)"}">${com.length ? usd(tot) : "US$ 0,00"}</div></div>
       <div style="color:var(--sub);font-size:12.5px;padding-bottom:4px">${com.length} operaç${com.length === 1 ? "ão" : "ões"} · ${ganhos} ganho${ganhos === 1 ? "" : "s"} · ${perdas} perda${perdas === 1 ? "" : "s"}${abertos ? ` · ${abertos} aberta${abertos === 1 ? "" : "s"}` : ""}</div>
     </div>` + acumulado(t.acumulado, usd) +
