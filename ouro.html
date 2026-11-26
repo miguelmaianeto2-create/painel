@@ -322,28 +322,40 @@ function acumulado(A, usd) {
   </div>`;
 }
 
-// 25/11 (presidente): setups do ouro na conta REAL (Exness), separados da demo
+// 26/11 (presidente): 30 dias sem intervenção manual na Exness real; um card por robô do ouro com todas as operações
 function contaReal(R, usd) {
   if (!R) return "";
   const cab = t => `<div class="rot" style="margin:8px 0 4px;font-size:12px;letter-spacing:.06em">${t}</div>`;
   if (R.erro || !R.dia) return cab("CONTA REAL") + `<div class="setup tx" style="color:var(--sub)">sem leitura da conta real agora</div>`;
   const cr = v => v > 0 ? "var(--alta)" : v < 0 ? "var(--baixa)" : "var(--sub)";
-  const D = R.dia, T = R.total, [, m, d] = String(T.desde || "").split("-");
+  const dm = x => { const [, m, d] = String(x || "").split("-"); return `${d}/${m}`; };
+  const D = R.dia, T = R.total, P = R.periodo || {};
+  const pl = (n, a, b) => `${n} ${n === 1 ? a : b}`;
   const velho = R.idade_s > 300 ? ` <span class="prova" style="color:var(--baixa)">leitura de ${Math.round(R.idade_s / 60)} min</span>` : "";
-  const linhas = (R.por_setup || []).map(s => `<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;padding:4px 0;border-top:1px solid var(--linha)">
-      <b style="font:700 12.5px var(--mono);white-space:nowrap">${es(s.setup)}</b>
-      <span style="color:var(--sub);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.aberta ? `<span style="color:var(--ouro)">aberta</span> · ${es(s.aberta.lado)} ${f2(s.aberta.entrada)}` : `${s.n} op.`}</span>
-      <span style="font:700 12.5px var(--mono);color:${cr(s.dia)};white-space:nowrap" title="hoje">${s.dia ? usd(s.dia) : "—"}</span>
-      <span style="font:600 11.5px var(--mono);color:${cr(s.total)};white-space:nowrap;min-width:84px;text-align:right" title="total">${usd(s.total)}</span></div>`).join("");
-  return cab("CONTA REAL · EXNESS" + (R.saldo != null ? ` · saldo US$ ${f2(R.saldo)}` : "")) + velho +
-    `<div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 6px;padding:12px 14px;border-radius:12px;background:${D.usd >= 0 ? "var(--alta-f)" : "var(--baixa-f)"};border:1px solid var(--linha)">
-      <div><div class="rot">Resultado do dia</div><div style="font:800 26px/1.1 var(--mono);color:${cr(D.usd)}">${usd(D.usd)}</div>
-        <div style="color:var(--sub);font-size:12px">${D.n} op. · ${D.ganhos} ganho${D.ganhos === 1 ? "" : "s"} · ${D.perdas} perda${D.perdas === 1 ? "" : "s"}${D.abertas ? ` · ${D.abertas} aberta${D.abertas === 1 ? "" : "s"}` : ""}</div></div>
-      <div><div class="rot">Total desde ${d}/${m}</div><div style="font:800 20px/1.1 var(--mono);color:${cr(T.usd)}">${usd(T.usd)}</div>
-        <div style="color:var(--sub);font-size:12px">${T.n} op. · ${T.ganhos} ganho${T.ganhos === 1 ? "" : "s"} · ${T.perdas} perda${T.perdas === 1 ? "" : "s"}</div></div>
-    </div>
-    <div class="setup" style="padding:6px 12px"><div style="display:flex;gap:8px;font-size:10.5px;color:var(--fraco)"><span style="flex:1">setup</span><span>hoje</span><span style="min-width:84px;text-align:right">total</span></div>${linhas}</div>` +
-    cab("CONTA DEMO");
+  const op = q => {
+    const ab = q.status === "aberto";
+    const quando = ab ? `${dm(q.dia)} ${q.hora_in} → <span style="color:var(--ouro)">aberta</span>` : `${dm(q.dia)} ${q.hora_in} → ${q.dia_saida !== q.dia ? dm(q.dia_saida) + " " : ""}${q.hora_out}`;
+    return `<div style="display:flex;gap:8px;align-items:baseline;font-size:12px;padding:3px 0;border-top:1px dashed var(--linha)">
+      <span style="color:var(--sub);white-space:nowrap;font-family:var(--mono)">${quando}</span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${es(q.lado)} ${f2(q.entrada)}${ab ? "" : " → " + f2(q.saida)}${q.motivo ? ` · <span style="color:var(--sub)">${es(q.motivo === "Manual" ? "MANUAL" : q.motivo)}</span>` : ""}</span>
+      <b style="font:700 12px var(--mono);color:${cr(q.usd)};white-space:nowrap">${usd(q.usd)}</b></div>`;
+  };
+  const card = s => `<div class="setup">
+      <div style="display:flex;align-items:center;gap:8px"><b style="font:800 14px var(--mono)">${es(s.setup)}</b>
+        <span style="color:var(--sub);font-size:11.5px">${s.n ? `${pl(s.n, "op.", "op.")} · ${s.ganhos}G ${s.perdas}P` : "sem operação no período"}</span><span style="flex:1"></span>
+        <span style="text-align:right;line-height:1.15"><span style="font:800 15px var(--mono);color:${cr(s.total)}">${s.n ? usd(s.total) : "—"}</span>
+        ${s.dia ? `<br><small style="font:600 10.5px var(--mono);color:${cr(s.dia)}">hoje ${usd(s.dia)}</small>` : ""}</span></div>
+      ${s.ops.slice(0, 6).map(op).join("")}
+      ${s.ops.length > 6 ? `<details><summary style="font-size:11.5px;color:var(--sub);cursor:pointer;padding-top:3px">mais ${s.ops.length - 6} operações</summary>${s.ops.slice(6).map(op).join("")}</details>` : ""}
+    </div>`;
+  return cab(`CONTA REAL · EXNESS · DIA ${Math.min(P.dia_n || 1, P.dias || 30)} DE ${P.dias || 30} (${dm(P.ini)} → ${dm(P.fim)})`) + velho +
+    `<div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:0 0 6px;padding:12px 14px;border-radius:12px;background:${T.usd >= 0 ? "var(--alta-f)" : "var(--baixa-f)"};border:1px solid var(--linha)">
+      <div><div class="rot">Total do período</div><div style="font:800 28px/1.1 var(--mono);color:${cr(T.usd)}">${usd(T.usd)}</div>
+        <div style="color:var(--sub);font-size:12px">${pl(T.n, "operação", "operações")} · ${pl(T.ganhos, "ganho", "ganhos")} · ${pl(T.perdas, "perda", "perdas")}${T.abertas ? ` · ${pl(T.abertas, "aberta", "abertas")}` : ""}</div></div>
+      <div><div class="rot">Pregão de hoje</div><div style="font:800 20px/1.1 var(--mono);color:${cr(D.usd)}">${usd(D.usd)}</div>
+        <div style="color:var(--sub);font-size:12px">${pl(D.n, "op.", "op.")} · desde 20:00</div></div>
+      <div style="margin-left:auto;text-align:right;font-size:11.5px;color:var(--sub);line-height:1.5">${R.saldo != null ? `saldo US$ ${f2(R.saldo)}<br>` : ""}<span style="color:${T.manuais ? "var(--baixa)" : "var(--alta)"}">${T.manuais ? pl(T.manuais, "intervenção manual", "intervenções manuais") : "nenhuma intervenção manual"}</span></div>
+    </div>` + (R.por_setup || []).map(card).join("") + cab("CONTA DEMO");
 }
 
 function setups(t) {
