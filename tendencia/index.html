@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>XPrime · Monitor de Tendência</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23000'/%3E%3Cline x1='20' y1='20' x2='80' y2='80' stroke='%23EEF1EE' stroke-width='15'/%3E%3Cline x1='20' y1='80' x2='66' y2='34' stroke='%23000' stroke-width='27'/%3E%3Cline x1='20' y1='80' x2='64' y2='36' stroke='%23FFB35C' stroke-width='15'/%3E%3Cpolygon points='56,14 86,14 86,44' fill='%23FFB35C'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#000;--card:#0d1110;--card-2:#121816;--sunk:#0a0d0c;--ink:#eef1ee;--ink-2:#a3aca7;--ink-3:#6b746f;--line:#1e2523;--line-2:#2a3330;
+--brand:#ffb35c;--pos:#4cc9a6;--neg:#f08d68;--mid:#3a423f;--display:"Sora",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:0 14px calc(48px + env(safe-area-inset-bottom))}
+.top{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 14px}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:inherit;margin-right:auto}.logo svg{width:30px;height:30px}
+.logo b{font:700 17px var(--display);letter-spacing:.04em;display:block;line-height:1.1}.logo b span{color:var(--brand)}
+.logo small{display:block;font:500 10px var(--mono);letter-spacing:.24em;color:var(--ink-3)}
+.chip{font:500 12px var(--mono);padding:5px 11px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2);background:none;cursor:pointer;white-space:nowrap}
+.chip.on{color:#000;background:var(--brand);border-color:var(--brand)}
+h1{font:700 clamp(24px,5vw,36px)/1.1 var(--display);margin:22px 0 4px}.lede{color:var(--ink-2);margin:0 0 14px;font-size:13px}
+h2{font:600 13px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:26px 0 10px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 4px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi small{display:block;color:var(--ink-3);font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}.kpi b{font:600 22px var(--display)}
+@media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+/* força das moedas: barras divergentes a partir do zero */
+.forca{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.fl{display:grid;grid-template-columns:44px 1fr 48px;align-items:center;gap:8px;height:30px}
+.fl .m{font:600 13px var(--mono)}.fl .v{font:500 13px var(--mono);text-align:right;color:var(--ink-2)}
+.trilho{position:relative;height:14px}.trilho::before{content:"";position:absolute;left:50%;top:-4px;bottom:-4px;width:1px;background:var(--line-2)}
+.trilho i{position:absolute;top:2px;height:10px}.trilho i.p{left:50%;background:var(--pos);border-radius:0 4px 4px 0}.trilho i.n{right:50%;background:var(--neg);border-radius:4px 0 0 4px}
+/* filtros */
+.filtros{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.filtros .sep{flex:1}
+/* cartões do ranking */
+.lista{display:grid;gap:8px}
+.par{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--mid);border-radius:12px;overflow:hidden}
+.par.alta{border-left-color:var(--pos)}.par.baixa{border-left-color:var(--neg)}
+.par>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:26px 1fr auto;gap:4px 10px;align-items:center;padding:10px 12px}
+.par>summary::-webkit-details-marker{display:none}
+.pos-n{font:500 12px var(--mono);color:var(--ink-3);text-align:center;border:1px solid var(--line-2);border-radius:6px;padding:2px 0}
+.nome b{font:600 16px var(--display);letter-spacing:.02em}.nome small{display:block;color:var(--ink-3);font-size:11.5px;line-height:1.2}
+.dir{text-align:right}.nota{font:600 20px var(--mono);display:block;line-height:1.1}
+.tag{display:inline-block;font:600 10.5px var(--mono);letter-spacing:.06em;padding:2px 7px;border-radius:6px;border:1px solid var(--line-2);color:var(--ink-2)}
+.tag.a{color:var(--pos);border-color:rgba(76,201,166,.45)}.tag.b{color:var(--neg);border-color:rgba(240,141,104,.45)}
+.tag.af{color:#000;background:var(--pos);border-color:var(--pos)}.tag.bf{color:#000;background:var(--neg);border-color:var(--neg)}
+.tfs{grid-column:2/4;display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:4px}
+.tf{font:500 10.5px var(--mono);text-align:center;padding:3px 0 2px;border-radius:5px;background:var(--sunk);color:var(--ink-3);border:1px solid var(--line)}
+.tf b{display:block;font-size:12px;line-height:1.2}
+.tf.a{background:rgba(76,201,166,.14);color:var(--pos);border-color:rgba(76,201,166,.35)}.tf.b{background:rgba(240,141,104,.14);color:var(--neg);border-color:rgba(240,141,104,.35)}
+.tf.af{background:var(--pos);color:#000;border-color:var(--pos)}.tf.bf{background:var(--neg);color:#000;border-color:var(--neg)}
+.det{border-top:1px solid var(--line);padding:8px 12px 12px}
+.det .info{display:flex;gap:14px;flex-wrap:wrap;font:12px var(--mono);color:var(--ink-2);margin-bottom:8px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font:12px var(--mono)}
+th,td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--ink-3);font-weight:500;font-size:10.5px;text-transform:uppercase}
+td:first-child,th:first-child{text-align:left}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+/* matriz */
+.matriz{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px}
+.matriz td,.matriz th{text-align:center;padding:4px 3px}.matriz td:first-child{text-align:left;font-weight:500;padding-left:6px}
+.cel{display:block;border-radius:4px;padding:3px 0;font-weight:500}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font:11px var(--mono);color:var(--ink-3);margin:8px 2px}.leg span{display:inline-flex;gap:5px;align-items:center}
+.leg i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.dica{position:fixed;z-index:8;pointer-events:none;background:var(--card-2);border:1px solid var(--line-2);border-radius:8px;padding:6px 9px;font:12px var(--mono);color:var(--ink);display:none;max-width:240px}
+#porta{position:fixed;inset:0;display:none;place-items:center;background:#000;z-index:9}
+#porta form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;width:min(360px,92vw)}
+#porta input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line-2);background:var(--sunk);color:var(--ink);font:16px var(--mono);margin:10px 0}
+#porta button{width:100%;padding:12px;border:0;border-radius:10px;background:var(--brand);color:#000;font:600 15px var(--display);cursor:pointer}
+#msg-senha{color:var(--neg);font-size:13px;min-height:18px}.rod{color:var(--ink-3);font-size:12px;margin-top:24px;line-height:1.6}
+.vazio{color:var(--ink-3);padding:14px;text-align:center}
+</style>
+</head><body>
+<svg width="0" height="0" style="position:absolute"><symbol id="simb" viewBox="0 0 100 100"><rect width="100" height="100" rx="18" fill="#000"/><line x1="20" y1="20" x2="80" y2="80" stroke="#EEF1EE" stroke-width="15"/><line x1="20" y1="80" x2="66" y2="34" stroke="#000" stroke-width="27"/><line x1="20" y1="80" x2="64" y2="36" stroke="#FFB35C" stroke-width="15"/><polygon points="56,14 86,14 86,44" fill="#FFB35C"/></symbol></svg>
+<div id="porta"><form id="f-senha"><b style="font:700 18px var(--display)">XPRIME · Monitor de Tendência</b>
+<div style="color:var(--ink-2);font-size:13px">Use a senha do painel de sinais</div>
+<input id="senha" type="password" autocomplete="current-password" autofocus><div id="msg-senha"></div><button>Entrar</button></form></div>
+<div class="top"><div class="top-in"><a class="logo" href="#" aria-label="XPrime Trading"><svg><use href="#simb"/></svg><span><b><span>X</span>PRIME</b><small>TENDÊNCIA</small></span></a><span class="chip" id="estado">carregando…</span></div></div>
+<div class="wrap">
+<h1>Monitor de Tendência</h1>
+<p class="lede">28 pares de forex · D1, H12, H4, H2, H1 e M30 · só barras fechadas · horário de Brasília</p>
+<div class="kpis" id="kpis"></div>
+
+<h2>Força das moedas</h2>
+<div class="forca" id="forca"></div>
+
+<h2>Ranking de tendência</h2>
+<div class="filtros" id="filtros"></div>
+<div class="lista" id="lista"></div>
+
+<h2>Matriz · 28 pares × 6 tempos</h2>
+<div class="matriz"><div class="tw"><table id="matriz"></table></div></div>
+<div class="leg"><span><i style="background:var(--pos)"></i>alta forte</span><span><i style="background:rgba(76,201,166,.35)"></i>alta</span><span><i style="background:var(--mid)"></i>lateral</span><span><i style="background:rgba(240,141,104,.35)"></i>baixa</span><span><i style="background:var(--neg)"></i>baixa forte</span></div>
+
+<div class="rod" id="rodape"></div></div>
+<div class="dica" id="dica"></div>
+<script>
+const API = "https://api.github.com/repos/miguelmaianeto2-create/painel/contents/tendencia.json?ref=sinais";
+const ARQ = new URLSearchParams(location.search).get("arquivo");
+const $ = id => document.getElementById(id);
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+let CHAVE = null, D = null, FILTRO = "todos", ABERTOS = new Set();
+async function deriva(senha, env) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({name: "PBKDF2", hash: "SHA-256", salt: b64(env.sal), iterations: env.it}, base, 512));
+  return {sal: env.sal, aes: await crypto.subtle.importKey("raw", bits.slice(0, 32), {name: "AES-CBC"}, false, ["decrypt"]),
+          mac: await crypto.subtle.importKey("raw", bits.slice(32), {name: "HMAC", hash: "SHA-256"}, false, ["verify"])};
+}
+async function abre(env, senha) {
+  if (!CHAVE || CHAVE.sal !== env.sal) CHAVE = await deriva(senha, env);
+  const sal = b64(env.sal), iv = b64(env.iv), ct = b64(env.ct);
+  const msg = new Uint8Array(sal.length + iv.length + ct.length); msg.set(sal); msg.set(iv, sal.length); msg.set(ct, sal.length + iv.length);
+  if (!await crypto.subtle.verify("HMAC", CHAVE.mac, b64(env.mac), msg)) throw new Error("Senha incorreta.");
+  const gz = await crypto.subtle.decrypt({name: "AES-CBC", iv}, CHAVE.aes, ct);
+  return JSON.parse(await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream("gzip"))).text());
+}
+async function baixa() {
+  const r = ARQ ? await fetch(ARQ, {cache: "no-store"}) : await fetch(API, {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"});
+  if (!r.ok) throw new Error("Dados indisponíveis no momento (" + r.status + ")."); return r.json();
+}
+let SENHA = ""; try { SENHA = sessionStorage.getItem("xp_sinais") || localStorage.getItem("xp_tend") || ""; } catch (e) {}
+async function ciclo(primeira) {
+  try {
+    const env = await baixa(); D = env.ct ? await abre(env, SENHA) : env;
+    if (primeira) { $("porta").style.display = "none"; try { sessionStorage.setItem("xp_sinais", SENHA); localStorage.setItem("xp_tend", SENHA); } catch (e) {} }
+    const idade = (Date.now() - new Date(D.gerado_utc)) / 60000;
+    $("estado").textContent = (idade > 10 ? "atrasado · " : "") + D.gerado_brt.slice(11) + " BRT";
+    $("estado").style.color = idade > 10 ? "var(--neg)" : "";
+    desenha(); return true;
+  } catch (e) {
+    if (primeira) { $("msg-senha").textContent = e.message; CHAVE = null; $("porta").style.display = "grid"; } else $("estado").textContent = "sem atualização";
+    return false;
+  }
+}
+$("f-senha").addEventListener("submit", async ev => { ev.preventDefault(); SENHA = $("senha").value; $("msg-senha").textContent = "";
+  if (await ciclo(true)) setInterval(() => ciclo(false), 90000); });
+if (SENHA) ciclo(true).then(ok => ok && setInterval(() => ciclo(false), 90000)); else $("porta").style.display = "grid";
+
+const nf = (x, d = 1) => x == null ? "—" : x.toLocaleString("pt-BR", {minimumFractionDigits: d, maximumFractionDigits: d});
+const sg = (x, d = 1) => x == null ? "—" : (x > 0 ? "+" : x < 0 ? "−" : "") + nf(Math.abs(x), d);
+const cls = r => ({"ALTA FORTE": "af", "ALTA": "a", "BAIXA FORTE": "bf", "BAIXA": "b"}[r] || "");
+const lado = r => r && r.startsWith("ALTA") ? "alta" : r && r.startsWith("BAIXA") ? "baixa" : "mista";
+const fmtPar = p => p.slice(0, 3) + "/" + p.slice(3);
+const seta = r => r.startsWith("ALTA") ? "▲" : r.startsWith("BAIXA") ? "▼" : "◆";
+
+function desenha() {
+  const P = D.pares, nA = P.filter(p => lado(p.rotulo) === "alta").length, nB = P.filter(p => lado(p.rotulo) === "baixa").length;
+  const nF = P.filter(p => p.rotulo.endsWith("FORTE")).length;
+  $("kpis").innerHTML = [["Em alta", `<span class="pos">${nA}</span>`], ["Em baixa", `<span class="neg">${nB}</span>`],
+    ["Mistos", P.length - nA - nB], ["Fortes", nF]].map(([a, b]) => `<div class="kpi"><small>${a}</small><b>${b}</b></div>`).join("");
+
+  $("forca").innerHTML = D.moedas.map(m => { const w = Math.min(50, Math.abs(m.forca) * 5);
+    return `<div class="fl" title="${m.nome}"><span class="m">${m.moeda}</span><span class="trilho"><i class="${m.forca >= 0 ? "p" : "n"}" style="width:${w}%"></i></span><span class="v">${sg(m.forca)}</span></div>`; }).join("");
+
+  const op = [["todos", "Todos"], ["alta", "▲ Alta"], ["baixa", "▼ Baixa"], ["forte", "Fortes"], ["mista", "Mistos"]];
+  $("filtros").innerHTML = op.map(([k, t]) => `<button class="chip ${k === FILTRO ? "on" : ""}" data-k="${k}">${t}</button>`).join("");
+  $("filtros").querySelectorAll("button").forEach(b => b.onclick = () => { FILTRO = b.dataset.k; desenha(); });
+
+  const vis = P.filter(p => FILTRO === "todos" || (FILTRO === "forte" ? p.rotulo.endsWith("FORTE") : lado(p.rotulo) === FILTRO));
+  $("lista").innerHTML = vis.length ? vis.map((p, i) => cartao(p, i + 1)).join("") : '<div class="vazio">Nenhum par neste filtro agora.</div>';
+  $("lista").querySelectorAll("details").forEach(d => d.ontoggle = () => d.open ? ABERTOS.add(d.dataset.p) : ABERTOS.delete(d.dataset.p));
+
+  $("matriz").innerHTML = `<tr><th>Par</th>${D.tfs.map(t => `<th>${t}</th>`).join("")}<th>Nota</th></tr>` +
+    [...P].sort((a, b) => b.nota - a.nota).map(p => `<tr><td>${fmtPar(p.par)}</td>${D.tfs.map(t => { const x = p.tf[t] || {};
+      return `<td><span class="cel tf ${cls(x.rotulo)}" data-d="${p.par} ${t}: ${x.rotulo || "—"} · nota ${x.nota ?? "—"} · ADX ${nf(x.adx)} · há ${x.desde ?? "—"} barras">${x.nota == null ? "—" : sg(x.nota, 0)}</span></td>`; }).join("")}
+      <td class="${p.nota > 0 ? "pos" : p.nota < 0 ? "neg" : ""}">${sg(p.nota)}</td></tr>`).join("");
+  dicas();
+  $("rodape").innerHTML = `Atualizado ${D.gerado_brt} (Brasília) · fonte ${D.fonte}.<br>
+Nota por tempo (−3 a +3): preço × EMA 50, EMA 20 × EMA 50 e inclinação da EMA 50 em 10 barras (±0,3 ATR). ±3 com ADX ≥ 25 = forte.
+Nota do par (−10 a +10): média com pesos ${D.tfs.map(t => t + " " + D.pesos[t]).join(", ")}. Força da moeda: média dos seus 7 pares.<br>
+Leitura de direção (filtro), não sinal de entrada. Ainda sem teste histórico.`;
+}
+function cartao(p, i) {
+  const l = lado(p.rotulo);
+  const tfs = D.tfs.map(t => { const x = p.tf[t] || {}; return `<span class="tf ${cls(x.rotulo)}">${t}<b>${x.nota == null ? "—" : sg(x.nota, 0)}</b></span>`; }).join("");
+  const linhas = D.tfs.map(t => { const x = p.tf[t] || {}; return `<tr><td>${t}</td><td><span class="tag ${cls(x.rotulo)}">${x.rotulo || "—"}</span></td><td>${x.nota == null ? "—" : sg(x.nota, 0)}</td>
+<td>${nf(x.adx)}</td><td class="${x.incl_atr > 0 ? "pos" : x.incl_atr < 0 ? "neg" : ""}">${sg(x.incl_atr, 2)}</td><td>${sg(x.dist_ema50_atr, 2)}</td><td>${x.desde ?? "—"}</td></tr>`; }).join("");
+  return `<details class="par ${l}" data-p="${p.par}" ${ABERTOS.has(p.par) ? "open" : ""}><summary>
+<span class="pos-n">${i}</span><span class="nome"><b>${fmtPar(p.par)}</b><small>${p.nome}</small></span>
+<span class="dir"><span class="nota ${p.nota > 0 ? "pos" : p.nota < 0 ? "neg" : ""}">${sg(p.nota)}</span><span class="tag ${cls(p.rotulo)}">${seta(p.rotulo)} ${p.rotulo}</span></span>
+<span class="tfs">${tfs}</span></summary>
+<div class="det"><div class="info"><span>Preço ${p.preco == null ? "—" : p.preco.toFixed(p.digitos)}</span><span>Dia ${sg(p.var_dia_pct, 2)}%</span><span>ATR D1 ${nf(p.atr_d1_pips)} pips</span><span>${p.tfs_alta} tempos em alta · ${p.tfs_baixa} em baixa</span></div>
+<div class="tw"><table><tr><th>Tempo</th><th>Leitura</th><th>Nota</th><th>ADX</th><th>Incl. ATR</th><th>Dist. EMA50</th><th>Barras</th></tr>${linhas}</table></div></div></details>`;
+}
+function dicas() {
+  const d = $("dica");
+  $("matriz").querySelectorAll(".cel").forEach(c => {
+    const mostra = ev => { d.textContent = c.dataset.d; d.style.display = "block"; const r = c.getBoundingClientRect();
+      d.style.left = Math.min(innerWidth - 250, Math.max(6, r.left - 60)) + "px"; d.style.top = (r.top - 40) + "px"; };
+    c.onmouseenter = mostra; c.onclick = mostra; c.onmouseleave = () => d.style.display = "none";
+  });
+  document.addEventListener("scroll", () => d.style.display = "none", {passive: true, once: true});
+}
+</script></body></html>
