@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#000000">
+<title>XPrime · Fluxo do GC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23000'/%3E%3Cline x1='20' y1='20' x2='80' y2='80' stroke='%23EEF1EE' stroke-width='15'/%3E%3Cline x1='20' y1='80' x2='64' y2='36' stroke='%23FFB35C' stroke-width='15'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#000;--card:#0d1110;--sunk:#0a0d0c;--ink:#eef1ee;--ink-2:#a3aca7;--ink-3:#6b746f;--line:#1e2523;--line-2:#2a3330;
+--brand:#ffb35c;--pos:#4cc9a6;--neg:#f08d68;--display:"Sora",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1100px;margin:0 auto;padding:0 14px 48px}
+.top{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 14px}
+.logo{margin-right:auto;font:700 17px var(--display);letter-spacing:.04em}.logo span{color:var(--brand)}.logo small{display:block;font:500 10px var(--mono);letter-spacing:.24em;color:var(--ink-3)}
+.chip{font:500 12px var(--mono);padding:5px 11px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2)}
+h1{font:700 clamp(24px,5vw,34px)/1.1 var(--display);margin:22px 0 4px}.lede{color:var(--ink-2);margin:0 0 14px;font-size:13px}
+h2{font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:24px 0 10px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi small{display:block;color:var(--ink-3);font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase}.kpi b{font:600 22px var(--display)}.kpi i{font-style:normal;color:var(--ink-3);font-size:12px}
+@media(max-width:620px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+table{width:100%;border-collapse:collapse;font:13px var(--mono)}th,td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--ink-3);font-weight:500;font-size:11px;text-transform:uppercase}td:first-child,th:first-child{text-align:left}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.barra{position:relative;height:10px;background:var(--sunk);border-radius:5px;overflow:hidden;min-width:90px}
+.barra i{position:absolute;top:0;bottom:0}.barra i.c{left:0;background:var(--pos)}.barra i.v{right:0;background:var(--neg)}
+.alertas{display:grid;gap:8px}.al{border-left:3px solid var(--brand);background:var(--card);border-radius:10px;padding:10px 12px}
+.al b{font:600 13px var(--mono);letter-spacing:.06em}.al p{margin:2px 0 0;color:var(--ink-2);font-size:13px}
+.ctx{display:flex;flex-wrap:wrap;gap:8px}.ctx span{font:13px var(--mono);border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;color:var(--ink-2)}.ctx b{color:var(--ink)}
+svg.g{width:100%;height:auto;display:block}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font:11px var(--mono);color:var(--ink-3);margin-top:6px}.leg i{display:inline-block;width:12px;height:3px;margin-right:5px;vertical-align:middle}
+.estudo{color:var(--ink-2);font-size:13px;line-height:1.6}.estudo b{color:var(--ink)}
+.vazio{color:var(--ink-3);font-size:13px}
+#porta{position:fixed;inset:0;display:none;place-items:center;background:#000;z-index:9}
+#porta form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;width:min(360px,92vw)}
+#porta input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line-2);background:var(--sunk);color:var(--ink);font:16px var(--mono);margin:10px 0}
+#porta button{width:100%;padding:12px;border:0;border-radius:10px;background:var(--brand);color:#000;font:600 15px var(--display);cursor:pointer}
+#msg-senha{color:var(--neg);font-size:13px;min-height:18px}.rod{color:var(--ink-3);font-size:12px;margin-top:24px;line-height:1.6}
+</style></head><body>
+<div id="porta"><form id="f-senha"><b style="font:700 18px var(--display)">XPRIME · Fluxo do GC</b>
+<div style="color:var(--ink-2);font-size:13px">Use a senha do painel de sinais</div>
+<input id="senha" type="password" autocomplete="current-password" autofocus><div id="msg-senha"></div><button>Entrar</button></form></div>
+<div class="top"><div class="top-in"><div class="logo"><span>X</span>PRIME<small>FLUXO · GC</small></div><span class="chip" id="estado">carregando…</span></div></div>
+<div class="wrap">
+<h1>Fluxo do ouro (GC)</h1>
+<p class="lede">Agressão ao vivo no futuro de ouro da CME · quem cruzou o spread para comprar ou vender · atualiza a cada ~90 s · horário de Brasília</p>
+<div class="kpis" id="kpis"></div>
+<h2>Agressão por janela</h2>
+<div class="card"><table id="janelas"></table></div>
+<h2>Leitura do fluxo agora</h2>
+<div class="alertas" id="leitura"></div>
+<h2>Preço × CVD da sessão</h2>
+<div class="card"><svg class="g" id="graf" viewBox="0 0 1000 300" preserveAspectRatio="none"></svg>
+<div class="leg"><span><i style="background:var(--ink)"></i>preço</span><span><i style="background:var(--brand)"></i>CVD (saldo da agressão)</span><span><i style="background:var(--pos)"></i>delta do minuto +</span><span><i style="background:var(--neg)"></i>delta do minuto −</span></div></div>
+<h2>Contexto do dia</h2>
+<div class="ctx" id="ctx"></div>
+<h2>O que o histórico diz (GC 2024–2026, lado oficial da CME)</h2>
+<div class="card estudo" id="estudo">
+<p>Medido em 3 anos (escolha 2024 · confirma 2025 · prova 2026), já sem a tendência do ano e sem o efeito do horário:</p>
+<p>• <b>Persistência</b> (5 min seguidos de agressão do mesmo lado, ≥ 20% do volume): nos 60 min seguintes o preço tende a <b>voltar</b> contra quem agrediu. Mesmo sinal nos 3 anos.</p>
+<p>• <b>Exaustão</b> (máxima/mínima de 60 min sem agressão a favor): tende a <b>virar</b> nos 5 min seguintes. Mesmo sinal nos 3 anos.</p>
+<p>• <b>Lotes grandes contra o preço</b>: o preço tende a seguir <b>o lado dos grandes</b> em 5–15 min. Mesmo sinal nos 3 anos.</p>
+<p>Os efeitos são consistentes mas pequenos por evento (perto do custo de uma operação): <b>ainda não são sinal de entrada</b>. A combinação deles por horário e regime está em estudo.</p>
+</div>
+<div class="rod" id="rodape"></div></div>
+<script>
+const API = "https://api.github.com/repos/miguelmaianeto2-create/painel/contents/fluxo.json?ref=sinais";
+const ARQ = new URLSearchParams(location.search).get("arquivo");
+const $ = id => document.getElementById(id);
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+let CHAVE = null, D = null;
+async function deriva(senha, env) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({name: "PBKDF2", hash: "SHA-256", salt: b64(env.sal), iterations: env.it}, base, 512));
+  return {sal: env.sal, aes: await crypto.subtle.importKey("raw", bits.slice(0, 32), {name: "AES-CBC"}, false, ["decrypt"]),
+          mac: await crypto.subtle.importKey("raw", bits.slice(32), {name: "HMAC", hash: "SHA-256"}, false, ["verify"])};
+}
+async function abre(env, senha) {
+  if (!CHAVE || CHAVE.sal !== env.sal) CHAVE = await deriva(senha, env);
+  const sal = b64(env.sal), iv = b64(env.iv), ct = b64(env.ct);
+  const msg = new Uint8Array(sal.length + iv.length + ct.length); msg.set(sal); msg.set(iv, sal.length); msg.set(ct, sal.length + iv.length);
+  if (!await crypto.subtle.verify("HMAC", CHAVE.mac, b64(env.mac), msg)) throw new Error("Senha incorreta.");
+  const gz = await crypto.subtle.decrypt({name: "AES-CBC", iv}, CHAVE.aes, ct);
+  return JSON.parse(await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream("gzip"))).text());
+}
+async function baixa() {
+  const r = ARQ ? await fetch(ARQ, {cache: "no-store"}) : await fetch(API, {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"});
+  if (!r.ok) throw new Error("Dados indisponíveis no momento (" + r.status + ")."); return r.json();
+}
+let SENHA = ""; try { SENHA = sessionStorage.getItem("xp_sinais") || localStorage.getItem("xp_tend") || ""; } catch (e) {}
+async function ciclo(primeira) {
+  try {
+    const env = await baixa(); D = env.ct ? await abre(env, SENHA) : env;
+    if (primeira) { $("porta").style.display = "none"; try { sessionStorage.setItem("xp_sinais", SENHA); localStorage.setItem("xp_tend", SENHA); } catch (e) {} }
+    const idade = (Date.now() - new Date(D.gerado_utc)) / 60000;
+    $("estado").textContent = (idade > 5 ? "atrasado · " : "") + (D.gerado_brt || "").slice(11, 16) + " BRT";
+    $("estado").style.color = idade > 5 ? "var(--neg)" : "";
+    desenha(); return true;
+  } catch (e) {
+    if (primeira) { $("msg-senha").textContent = e.message; CHAVE = null; $("porta").style.display = "grid"; } else $("estado").textContent = "sem atualização";
+    return false;
+  }
+}
+$("f-senha").addEventListener("submit", async ev => { ev.preventDefault(); SENHA = $("senha").value; $("msg-senha").textContent = "";
+  if (await ciclo(true)) setInterval(() => ciclo(false), 90000); });
+if (SENHA) ciclo(true).then(ok => ok && setInterval(() => ciclo(false), 90000)); else $("porta").style.display = "grid";
+
+const nf = (x, d = 0) => x == null ? "—" : Number(x).toLocaleString("pt-BR", {minimumFractionDigits: d, maximumFractionDigits: d});
+const sg = (x, d = 0) => x == null ? "—" : (x > 0 ? "+" : x < 0 ? "−" : "") + nf(Math.abs(x), d);
+const cor = x => x > 0 ? "pos" : x < 0 ? "neg" : "";
+function desenha() {
+  if (!D.ok) { $("kpis").innerHTML = '<div class="vazio">' + (D.motivo || "sem dados") + "</div>"; return; }
+  const s = D.sessao, j15 = D.janelas.find(j => j.min === 15) || {};
+  $("kpis").innerHTML = [
+    ["Último", nf(D.ultimo, 1), "GC fev/27"],
+    ["CVD da sessão", '<span class="' + cor(s.cvd) + '">' + sg(s.cvd) + "</span>", "desde " + s.inicio_brt],
+    ["Delta 15 min", '<span class="' + cor(j15.delta) + '">' + sg(j15.delta) + "</span>", sg((j15.deseq || 0) * 100) + "% do volume"],
+    ["Lotes grandes (sessão)", '<span class="' + cor(s.grandes) + '">' + sg(s.grandes) + "</span>", "≥ 10 contratos"]
+  ].map(k => '<div class="kpi"><small>' + k[0] + "</small><b>" + k[1] + "</b><br><i>" + k[2] + "</i></div>").join("");
+  $("janelas").innerHTML = "<tr><th>janela</th><th>compra agr.</th><th>venda agr.</th><th>delta</th><th>% vol</th><th></th><th>lotes grandes</th><th>preço</th></tr>" +
+    D.janelas.map(j => { const t = Math.max(j.compra + j.venda, 1);
+      return "<tr><td>" + j.min + " min</td><td>" + nf(j.compra) + "</td><td>" + nf(j.venda) + '</td><td class="' + cor(j.delta) + '">' + sg(j.delta) +
+        '</td><td class="' + cor(j.deseq) + '">' + sg(j.deseq * 100) + '%</td><td><div class="barra"><i class="c" style="width:' + (100 * j.compra / t) +
+        '%"></i><i class="v" style="width:' + (100 * j.venda / t) + '%"></i></div></td><td class="' + cor(j.grandes) + '">' + sg(j.grandes) +
+        '</td><td class="' + cor(j.var) + '">' + sg(j.var, 1) + "</td></tr>"; }).join("");
+  const p = D.persistencia;
+  const lt = (D.leitura || []).slice();
+  if (p && p.minutos >= 3) lt.push({tipo: "SEQUÊNCIA", texto: p.minutos + " minutos seguidos com agressão de " + p.lado + "."});
+  $("leitura").innerHTML = lt.length ? lt.map(a => '<div class="al"><b>' + a.tipo + "</b><p>" + a.texto + "</p></div>").join("")
+    : '<div class="vazio">Fluxo sem padrão relevante agora.</div>';
+  const c = D.contexto || {}, v = c.vol00 || {};
+  $("ctx").innerHTML = [
+    ["Direção do dia (QPilot D1+H4)", c.direcao || "—"], ["Amplitude típica", c.amplitude ? nf(c.amplitude, 1) + " pts" : "—"],
+    ["Regime 0DTE", c.regime_0dte || "—"], ["Previsor de volatilidade", v.classe || v.grupo || v.previsao || "—"],
+    ["Amplitude de 1 min", nf(D.amplitude_1m, 2) + " pts"], ["Máx · mín da sessão", nf(s.maxima, 1) + " · " + nf(s.minima, 1)]
+  ].map(x => "<span>" + x[0] + ": <b>" + x[1] + "</b></span>").join("");
+  grafico();
+  $("rodape").innerHTML = "Fonte: " + D.fonte + "<br>A sessão começa às 20:00 BRT; o tape gravado pela ponte começou em 27/11 13:45 BRT. Só leitura: nada aqui é recomendação de entrada.";
+}
+function grafico() {
+  const S = D.serie || {}, n = (S.t || []).length, g = $("graf");
+  if (n < 2) { g.innerHTML = ""; return; }
+  const W = 1000, H = 300, top = 10, mid = 200, bot = 290;
+  const sc = (a, lo, hi, y0, y1) => y1 - (a - lo) / ((hi - lo) || 1) * (y1 - y0);
+  const x = i => i / (n - 1) * W;
+  const cmin = Math.min(...S.c), cmax = Math.max(...S.c), vmin = Math.min(...S.cvd), vmax = Math.max(...S.cvd), dm = Math.max(...S.d.map(Math.abs), 1);
+  let h = "";
+  for (let i = 0; i < n; i++) { const y = sc(S.d[i], -dm, dm, mid + 10, bot), y0 = sc(0, -dm, dm, mid + 10, bot);
+    h += '<rect x="' + (x(i) - 2) + '" y="' + Math.min(y, y0) + '" width="4" height="' + Math.abs(y - y0) + '" fill="' + (S.d[i] >= 0 ? "#4cc9a6" : "#f08d68") + '"/>'; }
+  h += '<polyline fill="none" stroke="#ffb35c" stroke-width="2" points="' + S.cvd.map((v, i) => x(i) + "," + sc(v, vmin, vmax, top, mid)).join(" ") + '"/>';
+  h += '<polyline fill="none" stroke="#eef1ee" stroke-width="2" points="' + S.c.map((v, i) => x(i) + "," + sc(v, cmin, cmax, top, mid)).join(" ") + '"/>';
+  h += '<text x="4" y="22" fill="#6b746f" font-size="14" font-family="IBM Plex Mono">' + S.t[0] + " → " + S.t[n - 1] + " · preço " + nf(cmin, 1) + "–" + nf(cmax, 1) + "</text>";
+  g.innerHTML = h;
+}
+</script>
+</body></html>
